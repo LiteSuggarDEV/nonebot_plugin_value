@@ -1,0 +1,31 @@
+name: Publish to PyPI on Release
+
+on:
+  release:
+    types: [created]  # 当有新Release创建时触发
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        run: uv python install
+
+      #- name: Check pypi versions
+      #  uses: maybe-hello-world/pyproject-check-version@v4
+      #  id: versioncheck
+      #  with:
+      #    pyproject-path: "./pyproject.toml"
+      
+      - name: Publish to PyPI
+      #  if: ${{ steps.versioncheck.outputs.local_version_is_higher == 'true' }}
+        run: |
+          uv build
+          uv publish --token ${{ secrets.PYPI_API_TOKEN }}

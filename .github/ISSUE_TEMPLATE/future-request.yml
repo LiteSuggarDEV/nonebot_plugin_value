@@ -1,0 +1,16 @@
+name: 新功能
+description: 您希望Value插件添加什么新功能
+title: '[New Feature] '
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        欢迎来到 Value插件 新功能提交处。
+  - type: textarea
+    id: feature-new-content
+    attributes:
+      label: 什么新功能/改进
+      description: 您需要的新功能/改进
+    validations:
+      required: true
