@@ -1,11 +1,11 @@
-name: CI/CD Pipeline
+name: PullRequests CI/CD Pipeline
 
 on:
-  push:
+  pull_request:
     branches:
-      - master  # 指定触发分支
+      - master
     paths:
-      - '**'    # 监控所有文件变更（可按需调整）
+      - "**"
 
 jobs:
   build:
