@@ -42,5 +42,31 @@
 - 📊 完整审计：所有交易记录包含完整上下文信息
 - 🔐 安全控制：支持负余额限制、账户锁等机制
 
+### 快速开始
+
+#### 安装
+
+- 使用 uv 安装:
+
+  ```bash
+  uv add nonebot-plugin-value
+  ```
+
+- 使用 pip 安装:
+
+  ```bash
+  pip install nonebot-plugin-value
+  ```
+
+#### 加载插件
+
+打开`pyproject.toml`
+
+```toml
+[tool.nonebot]
+plugins = ["nonebot_plugin_value"]
+```
+
+添加依赖后，请重新启动 nonebot2
 
 ### [API Docs](docs/api.md)
