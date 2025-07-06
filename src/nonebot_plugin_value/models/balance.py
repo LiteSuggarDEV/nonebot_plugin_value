@@ -70,8 +70,8 @@ class UserAccount(Model):
 
     # 唯一约束：每个用户每种货币只能有一个账户
     __table_args__ = (
-        UniqueConstraint("user_id", "currency_id", name="uq_user_currency"),
-        Index("idx_user_currency", "user_id", "currency_id"),
+        UniqueConstraint("user_id", "currency_id", name="uq_usercurrency"),
+        Index("idx_usercurrency", "user_id", "currency_id"),
     )
 
 
@@ -118,7 +118,7 @@ class Transaction(Model):
     # 索引优化
     __table_args__ = (
         Index("idx_transaction_account", "account_id"),
-        Index("idx_transaction_timestamp", "timestamp"),
+        Index("idx_transactiontimestamp", "timestamp"),
     )
 
 

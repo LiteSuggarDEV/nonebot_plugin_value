@@ -34,10 +34,10 @@ async def del_balance(
             await HooksManager().run_hooks(
                 HooksType.pre(),
                 TransactionContext(
-                    _user_id=user_id,
-                    _currency=currency_id,
-                    _amount=amount,
-                    _action_type=Method.withdraw(),
+                    user_id=user_id,
+                    currency=currency_id,
+                    amount=amount,
+                    action_type=Method.withdraw(),
                 ),
             )
         except CancelAction as e:
@@ -57,11 +57,11 @@ async def del_balance(
             await HooksManager().run_hooks(
                 HooksType.post(),
                 TransactionComplete(
-                    _message="交易完成",
-                    _source_balance=balance_before,
-                    _new_balance=balance_after,
-                    _timestamp=datetime.now().timestamp(),
-                    _user_id=user_id,
+                    message="交易完成",
+                    source_balance=balance_before,
+                    new_balance=balance_after,
+                    timestamp=datetime.now().timestamp(),
+                    user_id=user_id,
                 ),
             )
         finally:
@@ -90,7 +90,20 @@ async def add_balance(
         balance_before = await account_repo.get_balance(account.id)
         if balance_before is None:
             raise ValueError("账户不存在")
+        try:
+            await HooksManager().run_hooks(
+                HooksType.pre(),
+                TransactionContext(
+                    user_id=user_id,
+                    currency=currency_id,
+                    amount=amount,
+                    action_type=Method.deposit(),
+                ),
+            )
+        except CancelAction as e:
+            return {"success": True, "message": f"取消了交易：{e.message}"}
         has_commit = True
+        balance_after = account.balance + amount
         await tx_repo.create_transaction(
             account.id,
             currency_id,
@@ -98,12 +111,25 @@ async def add_balance(
             Method.deposit(),
             source,
             account.balance,
-            account.balance + amount,
+            balance_after,
         )
-        await account_repo.update_balance(account.id, account.balance + amount)
+        await account_repo.update_balance(account.id, balance_after)
 
         await session.commit()
-        return {"success": True, "message": "操作成功"}
+        try:
+            await HooksManager().run_hooks(
+                HooksType.post(),
+                TransactionComplete(
+                    message="交易完成",
+                    source_balance=balance_before,
+                    new_balance=balance_after,
+                    timestamp=datetime.now().timestamp(),
+                    user_id=user_id,
+                ),
+            )
+        finally:
+            return {"success": True, "message": "操作成功"}
+
     except Exception as e:
         if has_commit:
             await session.rollback()
@@ -112,8 +138,8 @@ async def add_balance(
 
 async def transfer_funds(
     session: AsyncSession,
-    from_user_id: UUID,
-    to_user_id: UUID,
+    fromuser_id: UUID,
+    touser_id: UUID,
     currency_id: str,
     amount: float,
     source: str = "transfer",
@@ -122,13 +148,34 @@ async def transfer_funds(
     account_repo = AccountRepository(session)
     tx_repo = TransactionRepository(session)
 
-    from_account = await account_repo.get_or_create_account(from_user_id, currency_id)
-    to_account = await account_repo.get_or_create_account(to_user_id, currency_id)
+    from_account = await account_repo.get_or_create_account(fromuser_id, currency_id)
+    to_account = await account_repo.get_or_create_account(touser_id, currency_id)
 
     from_balance_before = from_account.balance
     to_balance_before = to_account.balance
 
     try:
+        try:
+            await HooksManager().run_hooks(
+                HooksType.pre(),
+                TransactionContext(
+                    user_id=fromuser_id,
+                    currency=currency_id,
+                    amount=amount,
+                    action_type=Method.transfer_out(),
+                ),
+            )
+            await HooksManager().run_hooks(
+                HooksType.pre(),
+                TransactionContext(
+                    user_id=touser_id,
+                    currency=currency_id,
+                    amount=amount,
+                    action_type=Method.transfer_in(),
+                ),
+            )
+        except CancelAction as e:
+            return {"success": True, "message": f"取消了交易：{e.message}"}
         from_balance_before, from_balance_after = await account_repo.update_balance(
             from_account.id, -amount
         )
@@ -157,12 +204,33 @@ async def transfer_funds(
 
         # 提交事务
         await session.commit()
-
-        return {
-            "success": True,
-            "from_balance": from_balance_after,
-            "to_balance": to_balance_after,
-        }
+        try:
+            await HooksManager().run_hooks(
+                HooksType.post(),
+                TransactionComplete(
+                    message="交易完成(转账)",
+                    source_balance=from_balance_before,
+                    new_balance=from_balance_after,
+                    timestamp=datetime.now().timestamp(),
+                    user_id=fromuser_id,
+                ),
+            )
+            await HooksManager().run_hooks(
+                HooksType.post(),
+                TransactionComplete(
+                    message="交易完成(转账)",
+                    source_balance=to_balance_before,
+                    new_balance=to_balance_after,
+                    timestamp=datetime.now().timestamp(),
+                    user_id=touser_id,
+                ),
+            )
+        finally:
+            return {
+                "success": True,
+                "from_balance": from_balance_after,
+                "to_balance": to_balance_after,
+            }
 
     except Exception as e:
         # 回滚事务
