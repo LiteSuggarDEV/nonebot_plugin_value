@@ -363,7 +363,7 @@ wheels = [
 
 [[package]]
 name = "nonebot-plugin-value"
-version = "0.1.0"
+version = "0.0.1.post1"
 source = { virtual = "." }
 dependencies = [
     { name = "nonebot-plugin-orm" },

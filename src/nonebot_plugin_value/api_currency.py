@@ -17,7 +17,7 @@ async def list_currencies(session: AsyncSession):
     return await CurrencyRepository(session).list_currencies()
 
 
-async def get_currency(session: AsyncSession, currency_id: str) -> CurrencyMeta | None:
+async def getcurrency(session: AsyncSession, currency_id: str) -> CurrencyMeta | None:
     """获取一个货币的元信息
 
     Args:
@@ -27,10 +27,10 @@ async def get_currency(session: AsyncSession, currency_id: str) -> CurrencyMeta 
     Returns:
         CurrencyMeta | None: 货币元数据（不存在为None）
     """
-    return await CurrencyRepository(session).get_currency(currency_id)
+    return await CurrencyRepository(session).getcurrency(currency_id)
 
 
-async def create_currency(
+async def createcurrency(
     session: AsyncSession, currency_data: CurrencyData
 ) -> CurrencyMeta | None:
     """创建新货币（如果存在就与获取等效）
@@ -42,6 +42,6 @@ async def create_currency(
     Returns:
         CurrencyMeta: 货币元信息模型
     """
-    if (metadata := await get_currency(session, currency_data.id)) is None:
-        return await CurrencyRepository(session).create_currency(currency_data)
+    if (metadata := await getcurrency(session, currency_data.id)) is None:
+        return await CurrencyRepository(session).createcurrency(currency_data)
     return metadata

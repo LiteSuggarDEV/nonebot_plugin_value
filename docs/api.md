@@ -11,7 +11,7 @@
 #### 创建货币
 
 ```python
-async def create_currency(session: AsyncSession, currency_data: CurrencyData) -> CurrencyMeta | None:
+async def createcurrency(session: AsyncSession, currency_data: CurrencyData) -> CurrencyMeta | None:
     """创建新货币（如果存在就与获取等效）"""
 ```
 
@@ -22,7 +22,7 @@ async def create_currency(session: AsyncSession, currency_data: CurrencyData) ->
 
   ```python
   data = CurrencyData(id="gold", display_name="金币", symbol="💰")
-  await create_currency(session, data)
+  await createcurrency(session, data)
   ```
 
 #### 获取货币列表
@@ -75,8 +75,8 @@ async def del_balance(
 ```python
 async def transfer_funds(
     session: AsyncSession,
-    from_user_id: UUID,
-    to_user_id: UUID,
+    fromuser_id: UUID,
+    touser_id: UUID,
     currency_id: str,
     amount: float,
     source: str = "transfer",

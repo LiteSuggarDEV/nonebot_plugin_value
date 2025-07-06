@@ -14,14 +14,14 @@ class CurrencyRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create_currency(self, currency_data: CurrencyData) -> CurrencyMeta:
+    async def createcurrency(self, currency_data: CurrencyData) -> CurrencyMeta:
         """创建新货币"""
         currency = CurrencyMeta(**dict(currency_data))
         self.session.add(currency)
         await self.session.flush()
         return currency
 
-    async def get_currency(self, currency_id: str) -> CurrencyMeta | None:
+    async def getcurrency(self, currency_id: str) -> CurrencyMeta | None:
         """获取货币信息"""
         result = await self.session.execute(
             select(CurrencyMeta).where(CurrencyMeta.id == currency_id)
