@@ -3,7 +3,8 @@ from uuid import UUID
 from nonebot_plugin_orm import AsyncSession
 from sqlalchemy import select
 
-from .models.currency import CurrencyMeta, Transaction, UserAccount
+from .models.balance import Transaction, UserAccount
+from .models.currency import CurrencyMeta
 from .models.currency_pyd import CurrencyData
 
 

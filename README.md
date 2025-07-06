@@ -1,9 +1,8 @@
-# Nonebot-Plugin-Value
 <div align="center">
   <a href="https://github.com/JohnRichard4096/nonebot_plugin_value/">
     <img src="https://github.com/user-attachments/assets/b5162036-5b17-4cf4-b0cb-8ec842a71bc6" width="200" alt="value Logo">
   </a>
-  <h1>value</h1>
+  <h1>Value</h1>
   <h3>新一代经济API</h3>
 
   <p>
