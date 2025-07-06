@@ -7,7 +7,6 @@ from .models.currency import CurrencyMeta, Transaction, UserAccount
 from .models.currency_pyd import CurrencyData
 
 
-# 示例数据库操作
 class CurrencyRepository:
     """货币元数据操作"""
 
@@ -134,9 +133,7 @@ class TransactionRepository:
         await self.session.flush()
         return transaction
 
-    async def get_transaction_history(
-        self, account_id: UUID, limit: int = 100
-    ):
+    async def get_transaction_history(self, account_id: UUID, limit: int = 100):
         """获取账户交易历史"""
         result = await self.session.execute(
             select(Transaction)
@@ -145,74 +142,3 @@ class TransactionRepository:
             .limit(limit)
         )
         return result.scalars().all()
-
-
-# 完整转账操作示例
-async def transfer_funds(
-    session: AsyncSession,
-    from_user_id: UUID,
-    to_user_id: UUID,
-    currency_id: str,
-    amount: float,
-):
-    """异步转账操作"""
-    # 初始化仓库
-    account_repo = AccountRepository(session)
-    tx_repo = TransactionRepository(session)
-
-    # 获取发送方账户
-    from_account = await account_repo.get_or_create_account(from_user_id, currency_id)
-
-    # 获取接收方账户
-    to_account = await account_repo.get_or_create_account(to_user_id, currency_id)
-
-    # 记录原始余额
-    from_balance_before = from_account.balance
-    to_balance_before = to_account.balance
-
-    try:
-        # 扣减发送方余额
-        from_balance_before, from_balance_after = await account_repo.update_balance(
-            from_account.id, -amount
-        )
-
-        # 增加接收方余额
-        to_balance_before, to_balance_after = await account_repo.update_balance(
-            to_account.id, amount
-        )
-
-        # 记录发送方交易
-        await tx_repo.create_transaction(
-            account_id=from_account.id,
-            currency_id=currency_id,
-            amount=-amount,
-            action="TRANSFER_OUT",
-            source="transfer_system",
-            balance_before=from_balance_before,
-            balance_after=from_balance_after,
-        )
-
-        # 记录接收方交易
-        await tx_repo.create_transaction(
-            account_id=to_account.id,
-            currency_id=currency_id,
-            amount=amount,
-            action="TRANSFER_IN",
-            source="transfer_system",
-            balance_before=to_balance_before,
-            balance_after=to_balance_after,
-        )
-
-        # 提交事务
-        await session.commit()
-
-        return {
-            "success": True,
-            "from_balance": from_balance_after,
-            "to_balance": to_balance_after,
-        }
-
-    except Exception as e:
-        # 回滚事务
-        await session.rollback()
-        return {"success": False, "error": str(e)}
