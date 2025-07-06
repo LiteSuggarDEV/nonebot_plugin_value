@@ -1,0 +1,37 @@
+erDiagram
+    PlatformUser ||--o{ UserAccount : "1..*"
+    CurrencyMeta ||--o{ UserAccount : "1..*"
+    UserAccount ||--o{ Transaction : "1..*"
+    CurrencyMeta ||--o{ Transaction : "1..*"
+
+    PlatformUser {
+        UUID id
+        String platform
+        String user_id
+    }
+
+    CurrencyMeta {
+        String id
+        String display_name
+        String symbol
+        Numeric default_balance
+        Boolean allow_negative
+    }
+
+    UserAccount {
+        UUID id
+        UUID user_id
+        String currency_id
+        Numeric balance
+    }
+
+    Transaction {
+        UUID id
+        UUID account_id
+        String currency_id
+        Numeric amount
+        String action
+        String source
+        Numeric balance_before
+        Numeric balance_after
+    }
