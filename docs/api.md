@@ -84,6 +84,14 @@ async def transfer_funds(
     """异步转账操作"""
 ```
 
+#### 交易记录查询
+
+```python
+async def get_transaction_history(
+    session: AsyncSession, account_id: UUID, limit: int = 100
+):
+```
+
 - **原子操作**：使用行级锁保证事务性
 - **自动创建**：源/目标账户不存在时自动创建
 
