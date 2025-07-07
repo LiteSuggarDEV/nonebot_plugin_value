@@ -1,9 +1,8 @@
 from datetime import datetime
-from uuid import UUID as _UUID
 from uuid import uuid4
 
 from nonebot_plugin_orm import Model
-from sqlalchemy import UUID, Boolean, DateTime, Numeric, String
+from sqlalchemy import Boolean, DateTime, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
@@ -12,10 +11,8 @@ class CurrencyMeta(Model):
 
     __tablename__ = "currency_meta"
 
-    # 货币ID作为主键（唯一标识）
-    id: Mapped[_UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid4
-    )
+    # 货币ID作为主键
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=uuid4)
 
     # 货币显示名称
     display_name: Mapped[str] = mapped_column(String(64), nullable=False)

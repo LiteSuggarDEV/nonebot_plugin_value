@@ -1,7 +1,8 @@
 from datetime import datetime
-from uuid import UUID
 
 from nonebot_plugin_orm import AsyncSession
+
+from nonebot_plugin_value.models.balance import UserAccount
 
 from .action_type import Method
 from .hook.context import TransactionComplete, TransactionContext
@@ -11,9 +12,14 @@ from .hook.hooks_type import HooksType
 from .repository import AccountRepository, TransactionRepository
 
 
+async def get_or_create_account(
+    session: AsyncSession, user_id: str, currency_id: str
+) -> UserAccount | None:
+    return await AccountRepository(session).get_or_create_account(user_id, currency_id)
+
 async def del_balance(
     session: AsyncSession,
-    user_id: UUID,
+    user_id: str,
     currency_id: str,
     amount: float,
     source: str = "",
@@ -74,7 +80,7 @@ async def del_balance(
 
 async def add_balance(
     session: AsyncSession,
-    user_id: UUID,
+    user_id: str,
     currency_id: str,
     amount: float,
     source: str = "",
@@ -138,8 +144,8 @@ async def add_balance(
 
 async def transfer_funds(
     session: AsyncSession,
-    fromuser_id: UUID,
-    touser_id: UUID,
+    fromuser_id: str,
+    touser_id: str,
     currency_id: str,
     amount: float,
     source: str = "transfer",

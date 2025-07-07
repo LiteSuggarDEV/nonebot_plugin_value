@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from nonebot_plugin_orm import AsyncSession
 
 from .models.currency import CurrencyMeta
@@ -30,10 +32,10 @@ async def getcurrency(session: AsyncSession, currency_id: str) -> CurrencyMeta |
     return await CurrencyRepository(session).getcurrency(currency_id)
 
 
-async def createcurrency(
+async def get_or_create_currency(
     session: AsyncSession, currency_data: CurrencyData
 ) -> CurrencyMeta | None:
-    """创建新货币（如果存在就与获取等效）
+    """获取或创建新货币（如果存在就获取）
 
     Args:
         session (AsyncSession): SQLAlchemy的异步session
@@ -42,6 +44,11 @@ async def createcurrency(
     Returns:
         CurrencyMeta: 货币元信息模型
     """
-    if (metadata := await getcurrency(session, currency_data.id)) is None:
-        return await CurrencyRepository(session).createcurrency(currency_data)
-    return metadata
+    if currency_data.id == "":
+        while True:
+            currency_data.id = uuid4().hex
+            if await getcurrency(session, uuid4().hex) is None:
+                break
+    if (metadata := await getcurrency(session, currency_data.id)) is not None:
+        return metadata
+    return await CurrencyRepository(session).createcurrency(currency_data)
