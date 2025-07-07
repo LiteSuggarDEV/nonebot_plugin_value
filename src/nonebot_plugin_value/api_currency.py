@@ -44,11 +44,11 @@ async def get_or_create_currency(
     Returns:
         CurrencyMeta: 货币元信息模型
     """
-    if currency_data.id == "":
+    if currency_data.currency_id == "":
         while True:
-            currency_data.id = uuid4().hex
+            currency_data.currency_id = uuid4().hex
             if await getcurrency(session, uuid4().hex) is None:
                 break
-    if (metadata := await getcurrency(session, currency_data.id)) is not None:
+    if (metadata := await getcurrency(session, currency_data.currency_id)) is not None:
         return metadata
     return await CurrencyRepository(session).createcurrency(currency_data)
