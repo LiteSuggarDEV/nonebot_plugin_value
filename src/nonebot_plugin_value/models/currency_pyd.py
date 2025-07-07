@@ -23,6 +23,6 @@ class BaseData(BaseModel):
 class CurrencyData(BaseData):
     allow_negative: bool = Field(default=False)
     display_name: str = Field(default="Dollar")
-    currency_id: str = Field(default="")
+    id: str = Field(default="")
     symbol: str = Field(default="$")
     default_balance: float = Field(default=0.0)
