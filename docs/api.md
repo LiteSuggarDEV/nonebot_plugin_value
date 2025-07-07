@@ -39,7 +39,7 @@ async def list_currencies(session: AsyncSession) -> Sequence[CurrencyMeta]:
 ```python
 async def add_balance(
     session: AsyncSession,
-    user_id: UUID,
+    user_id: str,
     currency_id: str,
     amount: float,
     source: str = "",
@@ -57,7 +57,7 @@ async def add_balance(
 ```python
 async def del_balance(
     session: AsyncSession,
-    user_id: UUID,
+    user_id: str,
     currency_id: str,
     amount: float,
     source: str = "",
@@ -75,8 +75,8 @@ async def del_balance(
 ```python
 async def transfer_funds(
     session: AsyncSession,
-    fromuser_id: UUID,
-    touser_id: UUID,
+    fromuser_id: str,
+    touser_id: str,
     currency_id: str,
     amount: float,
     source: str = "transfer",
@@ -88,7 +88,7 @@ async def transfer_funds(
 
 ```python
 async def get_transaction_history(
-    session: AsyncSession, account_id: UUID, limit: int = 100
+    session: AsyncSession, account_id: str, limit: int = 100
 ):
 ```
 
