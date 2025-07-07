@@ -1,9 +1,6 @@
 from typing import Any
-from uuid import UUID
 
 from pydantic import BaseModel, Field
-
-from .exception import CancelAction
 
 
 class BasicModel(BaseModel):
@@ -26,7 +23,7 @@ class TransactionContext(BasicModel):
         BasicModel (BasicModel): extends pydantic BaseModel
     """
 
-    user_id: UUID = Field(default_factory=UUID)  # 用户的唯一标识ID
+    user_id: str = Field(default_factory=str)  # 用户的唯一标识ID
     currency: str = Field(default_factory=str)  # 货币种类
     amount: float = Field(default_factory=float)  # 金额（+或-）
     action_type: str = Field(default_factory=str)  # 操作类型（参考Method类）
@@ -43,4 +40,4 @@ class TransactionComplete(BasicModel):
     source_balance: float = Field(default_factory=float)
     new_balance: float = Field(default_factory=float)
     timestamp: float = Field(default_factory=float)
-    user_id: UUID = Field(default_factory=UUID)
+    user_id: str = Field(default_factory=str)

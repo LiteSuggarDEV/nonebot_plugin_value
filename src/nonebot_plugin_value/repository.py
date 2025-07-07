@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from nonebot_plugin_orm import AsyncSession
 from sqlalchemy import select
 
@@ -41,7 +39,7 @@ class AccountRepository:
         self.session = session
 
     async def get_or_create_account(
-        self, user_id: UUID, currency_id: str
+        self, user_id: str, currency_id: str
     ) -> UserAccount:
         """获取或创建用户账户"""
         # 检查账户是否存在
@@ -69,13 +67,13 @@ class AccountRepository:
         await self.session.flush()
         return new_account
 
-    async def get_balance(self, account_id: UUID) -> float | None:
+    async def get_balance(self, account_id: str) -> float | None:
         """获取账户余额"""
         account = await self.session.get(UserAccount, account_id)
         return account.balance if account else None
 
     async def update_balance(
-        self, account_id: UUID, delta: float
+        self, account_id: str, delta: float
     ) -> tuple[float, float]:
         """原子更新余额"""
         # 获取账户（带锁）
@@ -112,7 +110,7 @@ class TransactionRepository:
 
     async def create_transaction(
         self,
-        account_id: UUID,
+        account_id: str,
         currency_id: str,
         amount: float,
         action: str,
@@ -134,7 +132,7 @@ class TransactionRepository:
         await self.session.flush()
         return transaction
 
-    async def get_transaction_history(self, account_id: UUID, limit: int = 100):
+    async def get_transaction_history(self, account_id: str, limit: int = 100):
         """获取账户交易历史"""
         result = await self.session.execute(
             select(Transaction)

@@ -1,6 +1,4 @@
 from datetime import datetime
-from uuid import UUID as _UUID
-from uuid import uuid4
 
 from nonebot_plugin_orm import Model
 from sqlalchemy import (
@@ -11,7 +9,6 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
@@ -21,7 +18,7 @@ class PlatformUser(Model):
     __tablename__ = "platform_users"
 
     # UUID作为主键（由外部算法生成）
-    id:Mapped[_UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
 
     # 平台类型（如QQ、微信等）
     platform:Mapped[str] = mapped_column(String(32), nullable=False)
@@ -45,11 +42,11 @@ class UserAccount(Model):
     __tablename__ = "user_accounts"
 
     # UUID作为主键（由外部算法生成）
-    id:Mapped[_UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
 
     # 用户外键
-    user_id:Mapped[_UUID] = mapped_column(
-        UUID, ForeignKey("platform_users.id", ondelete="CASCADE"), nullable=False
+    user_id: Mapped[str] = mapped_column(
+        String, ForeignKey("platform_users.id", ondelete="CASCADE"), nullable=False
     )
 
     # 货币外键
@@ -81,11 +78,11 @@ class Transaction(Model):
     __tablename__ = "transactions"
 
     # UUID作为主键
-    id:Mapped[_UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
 
     # 账户外键
-    account_id:Mapped[_UUID] = mapped_column(
-        UUID, ForeignKey("user_accounts.id", ondelete="RESTRICT"), nullable=False
+    account_id: Mapped[str] = mapped_column(
+        String, ForeignKey("user_accounts.id", ondelete="RESTRICT"), nullable=False
     )
 
     # 货币外键
