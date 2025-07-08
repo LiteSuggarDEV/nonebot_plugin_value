@@ -8,10 +8,8 @@
 
 > 文档内,`~`表示**nonebot_plugin_value**模块
 
-### [标准API](./apis/standard.md)
+### [标准API(表现层)](./apis/standard.md)
 
-### [进阶API(数据库封装层)](./apis/advanced.md)
+### [进阶API(服务层)](./apis/advanced.md)
 
-### [底层API(数据库操作层)](./apis/kernel.md)
-
-### [模型类](./)
+### [底层API(数据层)](./apis/kernel.md)

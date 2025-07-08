@@ -11,7 +11,7 @@ async def list_currencies(session: AsyncSession | None = None):
     """获取已存在的货币
 
     Args:
-        session (AsyncSession): 异步Session
+        session (AsyncSession | None, optional): 异步Session
 
     Returns:
         Sequence[CurrencyMeta]: 返回货币列表
@@ -29,7 +29,7 @@ async def getcurrency(
     """获取一个货币的元信息
 
     Args:
-        session (AsyncSession): SQLAlchemy的异步session
+        session (AsyncSession | None, optional): SQLAlchemy的异步session
         currency_id (str): 货币唯一ID
 
     Returns:
@@ -49,7 +49,7 @@ async def get_or_create_currency(
     """获取或创建新货币（如果存在就获取）
 
     Args:
-        session (AsyncSession): SQLAlchemy的异步session
+        session (AsyncSession | None, optional): SQLAlchemy的异步session
         currency_data (CurrencyData): 货币元信息
 
     Returns:

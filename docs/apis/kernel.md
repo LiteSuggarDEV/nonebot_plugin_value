@@ -1,0 +1,105 @@
+# Value-底层API文档
+
+> **本API为数据层API，包含操作数据库的底层逻辑**
+
+## Repository(`~.repository`)
+
+### 变量定义：
+```python
+DEFAULT_NAME = "DEFAULT_CURRENCY_USD"
+DEFAULT_CURRENCY_UUID = uuid5(uuid.NAMESPACE_X500, "nonebot_plugin_value")
+```
+
+---
+
+### CurrencyRepository(`~.repository.CurrencyRepository`)
+
+<details>
+
+```python
+class CurrencyRepository:
+    """货币元数据操作"""
+
+    def __init__(self, session: AsyncSession):
+        ...
+
+    async def createcurrency(self, currency_data: CurrencyData) -> CurrencyMeta:
+        async with self.session as session:
+            """创建新货币"""
+            ...
+
+    async def getcurrency(self, currency_id: str) -> CurrencyMeta | None:
+        """获取货币信息"""
+        ...
+```
+
+</details>
+
+---
+
+### AccountRepository(`~.repository.AccountRepository`)
+
+<details>
+
+```python
+class AccountRepository:
+    """账户操作"""
+
+    def __init__(self, session: AsyncSession):
+        ...
+
+    async def get_or_create_account(
+        self, user_id: str, currency_id: str
+    ) -> UserAccount:
+        async with self.session as session:
+            """获取或创建用户账户"""
+            ....
+
+    async def get_balance(self, account_id: str) -> float | None:
+        """获取账户余额"""
+        ...
+
+    async def update_balance(
+        self, account_id: str, delta: float
+    ) -> tuple[float, float]:
+        async with self.session as session:
+            """原子更新余额"""
+            ...
+```
+
+</details>
+
+---
+
+### TransactionRepository(`~.repository.TransactionRepository`)
+
+<details>
+
+```python
+class TransactionRepository:
+    """交易操作"""
+
+    def __init__(self, session: AsyncSession):
+        ...
+
+    async def create_transaction(
+        self,
+        account_id: str,
+        currency_id: str,
+        amount: float,
+        action: str,
+        source: str,
+        balance_before: float,
+        balance_after: float,
+        timestamp: datetime | None = None,
+    ) -> Transaction:
+        async with self.session as session:
+            """创建交易记录"""
+            ...
+
+    async def get_transaction_history(self, account_id: str, limit: int = 100):
+        """获取账户交易历史"""
+        ...
+```
+
+</details>

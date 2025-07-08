@@ -1,12 +1,12 @@
 # Value-标准API文档
 
-> **本API为无数据库直接操作的用户层API**
+> **本API为无数据库直接操作的表现层API**
 
-## balance-API(`~.api.api_balance`)
+## balance-API(`~~`代指`~.api.api_balance`)
 
 <details>
 
-### `~.api.api_balance.get_or_create_account`
+### `~~.get_or_create_account`
 
 ```python
 async def get_or_create_account(
@@ -24,7 +24,7 @@ async def get_or_create_account(
     ...
 ```
 
-### `~.api.api_balance.add_balance`
+### `~~.add_balance`
 
 ```python
 async def add_balance(
@@ -50,7 +50,7 @@ async def add_balance(
     ...
 ```
 
-### `~.api.api_balance.del_balacne`
+### `~~.del_balacne`
 
 ```python
 async def del_balance(
@@ -76,7 +76,7 @@ async def del_balance(
     ...
 ```
 
-### `~.api.api_balance.transfer_funds`
+### `~~.transfer_funds`
 
 ```python
 async def transfer_funds(
@@ -109,11 +109,11 @@ async def transfer_funds(
 
 ---
 
-## currency-API(`~.api.api_currency`)
+## currency-API(`~~`代指`~.api.api_currency`)
 
 <details>
 
-### `~.api.api_currency.list_currencies`
+### `~~.list_currencies`
 
 ```python
 async def list_currencies() -> list[CurrencyData]:
@@ -125,7 +125,7 @@ async def list_currencies() -> list[CurrencyData]:
     ...
 ```
 
-### `~.api.api_currency.get_currency`
+### `~~.get_currency`
 
 ```python
 async def get_currency(currency_id: str) -> CurrencyData | None:
@@ -140,7 +140,7 @@ async def get_currency(currency_id: str) -> CurrencyData | None:
     ...
 ```
 
-### `~.api.api_currency.get_default_currency`
+### `~~.get_default_currency`
 
 ```python
 async def get_default_currency() -> CurrencyData:
@@ -152,7 +152,7 @@ async def get_default_currency() -> CurrencyData:
     ...
 ```
 
-### `~.api.api_currency.create_currency`
+### `~~.create_currency`
 
 ```python
 async def create_currency(currency_data: CurrencyData) -> CurrencyData:
@@ -169,9 +169,11 @@ async def create_currency(currency_data: CurrencyData) -> CurrencyData:
 
 </details>
 
-## transaction-API(`~.api.api_transaction`)
+## transaction-API(`~~`代指`~.api.api_transaction`)
 
-### `~.api.api_transaction.get_transaction_history`
+<details>
+
+### `~~.get_transaction_history`
 
 ```python
 async def get_transaction_history(
@@ -189,3 +191,5 @@ async def get_transaction_history(
     """
     ...
 ```
+
+</details>
