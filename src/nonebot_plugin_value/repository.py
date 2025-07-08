@@ -1,3 +1,4 @@
+# Repository,更加底层的数据库操作接口
 import uuid
 from datetime import datetime
 from uuid import uuid5
@@ -7,7 +8,7 @@ from sqlalchemy import insert, select
 
 from .models.balance import Transaction, UserAccount
 from .models.currency import CurrencyMeta
-from .models.currency_pyd import CurrencyData
+from .pyd_models.currency_pyd import CurrencyData
 
 DEFAULT_NAME = "DEFAULT_CURRENCY_USD"
 DEFAULT_CURRENCY_UUID = uuid5(uuid.NAMESPACE_X500, "nonebot_plugin_value")

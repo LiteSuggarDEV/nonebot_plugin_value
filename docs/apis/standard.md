@@ -1,0 +1,195 @@
+# Value-标准API文档
+
+> **本API为无数据库直接操作的表现层API**
+
+## balance-API(`~~`代指`~.api.api_balance`)
+
+<details>
+
+### `~~.get_or_create_account`
+
+```python
+async def get_or_create_account(
+    user_id: str, currency_id: str | None = None
+) -> UserAccountData:
+    """获取账户数据（不存在就创建）
+
+    Args:
+        user_id (str): 用户ID
+        currency_id (str | None, optional): 货币ID(不填则使用默认货币)
+
+    Returns:
+        UserAccountData: 用户数据
+    """
+    ...
+```
+
+### `~~.add_balance`
+
+```python
+async def add_balance(
+    user_id: str,
+    amount: float,
+    source: str = "_transfer",
+    currency_id: str | None = None,
+) -> UserAccountData:
+    """添加用户余额
+
+    Args:
+        user_id (str): 用户ID
+        amount (float): 数量
+        source (str, optional): 源描述. Defaults to "_transfer".
+        currency_id (str | None, optional): 货币ID(不填使用默认). Defaults to None.
+
+    Raises:
+        RuntimeError: 如果添加失败则抛出异常
+
+    Returns:
+        UserAccountData: 用户账户数据
+    """
+    ...
+```
+
+### `~~.del_balacne`
+
+```python
+async def del_balance(
+    user_id: str,
+    amount: float,
+    source: str = "_transfer",
+    currency_id: str | None = None,
+) -> UserAccountData:
+    """减少一个账户的余额
+
+    Args:
+        user_id (str): 用户ID
+        amount (float): 金额
+        source (str, optional): 源说明. Defaults to "_transfer".
+        currency_id (str | None, optional): 货币ID(不填则使用默认货币). Defaults to Noen.
+
+    Raises:
+        RuntimeError: 如果失败则抛出
+
+    Returns:
+        UserAccountData: 用户数据
+    """
+    ...
+```
+
+### `~~.transfer_funds`
+
+```python
+async def transfer_funds(
+    from_id: str,
+    to_id: str,
+    amount: float,
+    source: str = "",
+    currency_id: str | None = None,
+) -> UserAccountData:
+    """转账
+
+    Args:
+        from_id (str): 源账户
+        to_id (str): 目标账户
+        amount (float): 数量
+        source (str, optional): 来源说明. Defaults to "from {from_id} to {to_id}".
+        currency_id (str | None, optional): 货币ID（不填则使用默认货币）. Defaults to None.
+
+    Raises:
+        RuntimeError: 失败则抛出
+
+    Returns:
+        UserAccountData: 用户账户数据
+    """
+    ...
+```
+
+
+</details>
+
+---
+
+## currency-API(`~~`代指`~.api.api_currency`)
+
+<details>
+
+### `~~.list_currencies`
+
+```python
+async def list_currencies() -> list[CurrencyData]:
+    """获取所有已存在货币
+
+    Returns:
+        list[CurrencyData]: 包含所有已存在货币的列表
+    """
+    ...
+```
+
+### `~~.get_currency`
+
+```python
+async def get_currency(currency_id: str) -> CurrencyData | None:
+    """获取一个货币信息
+
+    Args:
+        currency_id (str): 货币唯一ID
+
+    Returns:
+        CurrencyData | None: 货币数据，如果不存在则返回None
+    """
+    ...
+```
+
+### `~~.get_default_currency`
+
+```python
+async def get_default_currency() -> CurrencyData:
+    """获取默认货币的信息
+
+    Returns:
+        CurrencyData: 货币信息
+    """
+    ...
+```
+
+### `~~.create_currency`
+
+```python
+async def create_currency(currency_data: CurrencyData) -> CurrencyData:
+    """创建货币
+
+    Args:
+        currency_data (CurrencyData): 货币数据
+
+    Returns:
+        CurrencyData: 货币数据
+    """
+    ...
+```
+
+</details>
+
+## transaction-API(`~~`代指`~.api.api_transaction`)
+
+<details>
+
+### `~~.get_transaction_history`
+
+```python
+async def get_transaction_history(
+    account_id: str,
+    limit: int = 10,
+) -> list[TransactionData]:
+    """获取账户历史交易记录
+
+    Args:
+        account_id (str): 账户ID
+        limit (int, optional): 最大数量. Defaults to 10.
+
+    Returns:
+        list[TransactionData]: 包含交易数据的列表
+    """
+    ...
+```
+
+</details>

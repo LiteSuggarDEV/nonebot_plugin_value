@@ -1,6 +1,9 @@
+# 事件钩子上下文
 from typing import Any
 
 from pydantic import BaseModel, Field
+
+from .exception import CancelAction
 
 
 class BasicModel(BaseModel):
@@ -27,6 +30,9 @@ class TransactionContext(BasicModel):
     currency: str = Field(default_factory=str)  # 货币种类
     amount: float = Field(default_factory=float)  # 金额（+或-）
     action_type: str = Field(default_factory=str)  # 操作类型（参考Method类）
+
+    def cancel(self, reason: str = ""):
+        raise CancelAction(reason)
 
 
 class TransactionComplete(BasicModel):

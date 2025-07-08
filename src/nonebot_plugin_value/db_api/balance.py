@@ -1,5 +1,7 @@
 from datetime import datetime
+from typing import Any
 
+from nonebot import logger
 from nonebot_plugin_orm import AsyncSession, get_session
 
 from nonebot_plugin_value.models.balance import UserAccount
@@ -17,6 +19,16 @@ async def get_or_create_account(
     currency_id: str,
     session: AsyncSession | None = None,
 ) -> UserAccount:
+    """获取或创建一个货币的账户
+
+    Args:
+        user_id (str): 用户ID
+        currency_id (str): 货币ID
+        session (AsyncSession | None, optional): 异步会话. Defaults to None.
+
+    Returns:
+        UserAccount: 用户数据模型
+    """
     if session is None:
         session = get_session()
     async with session:
@@ -31,8 +43,19 @@ async def del_balance(
     amount: float,
     source: str = "",
     session: AsyncSession | None = None,
-) -> dict[str, bool | str]:
-    """异步减少余额"""
+) -> dict[str, Any]:
+    """异步减少余额
+
+    Args:
+        user_id (str): 用户ID
+        currency_id (str): 货币ID
+        amount (float): 数量
+        source (str, optional): 来源说明. Defaults to "".
+        session (AsyncSession | None, optional): 数据库异步会话. Defaults to None.
+
+    Returns:
+        dict[str, Any]: 包含是否成功的说明
+    """
     if not amount < 0:
         return {"success": False, "message": "减少金额不能大于0"}
     if session is None:
@@ -58,6 +81,7 @@ async def del_balance(
                     ),
                 )
             except CancelAction as e:
+                logger.warning(f"取消了交易：{e.message}")
                 return {"success": True, "message": f"取消了交易：{e.message}"}
             has_commit = True
             await account_repo.update_balance(account.id, balance_after)
@@ -95,8 +119,19 @@ async def add_balance(
     amount: float,
     source: str = "",
     session: AsyncSession | None = None,
-) -> dict[str, bool | str]:
-    """异步增加余额"""
+) -> dict[str, Any]:
+    """异步增加余额
+
+    Args:
+        user_id (str): 用户ID
+        currency_id (str): 货币ID
+        amount (float): 数量
+        source (str, optional): 来源说明. Defaults to "".
+        session (AsyncSession | None, optional): 数据库异步会话. Defaults to None.
+
+    Returns:
+        dict[str, Any]: 是否成功("success")，消息说明("message")
+    """
     if session is None:
         session = get_session()
     async with session:
@@ -121,6 +156,7 @@ async def add_balance(
                     ),
                 )
             except CancelAction as e:
+                logger.warning(f"取消了交易：{e.message}")
                 return {"success": True, "message": f"取消了交易：{e.message}"}
             has_commit = True
             balance_after = account.balance + amount
@@ -157,15 +193,29 @@ async def add_balance(
 
 
 async def transfer_funds(
-    session: AsyncSession,
     fromuser_id: str,
     touser_id: str,
     currency_id: str,
     amount: float,
     source: str = "transfer",
-) -> dict[str, bool | str | float]:
+    session: AsyncSession | None = None,
+) -> dict[str, Any]:
+    """异步转账
+
+    Args:
+        fromuser_id (str): 源用户ID
+        touser_id (str): 目标用户ID
+        currency_id (str): 货币ID
+        amount (float): 数量
+        source (str, optional): 源说明. Defaults to "transfer".
+        session (AsyncSession | None, optional): 数据库异步Session. Defaults to None.
+
+    Returns:
+        dict[str, Any]: 如果成功则包含"from_balance"（源账户现在的balance），"to_balance"（目标账户现在的balance），否则包含"message"（错误消息）字段
+    """
+    if session is None:
+        session = get_session()
     async with session:
-        """异步转账操作"""
         account_repo = AccountRepository(session)
         tx_repo = TransactionRepository(session)
 
@@ -180,6 +230,8 @@ async def transfer_funds(
         to_balance_before = to_account.balance
 
         try:
+            if amount<=0:
+                raise ValueError("转账值为非负数！")
             try:
                 await HooksManager().run_hooks(
                     HooksType.pre(),
@@ -200,6 +252,7 @@ async def transfer_funds(
                     ),
                 )
             except CancelAction as e:
+                logger.info(f"取消了交易：{e.message}")
                 return {"success": True, "message": f"取消了交易：{e.message}"}
             from_balance_before, from_balance_after = await account_repo.update_balance(
                 from_account.id, -amount

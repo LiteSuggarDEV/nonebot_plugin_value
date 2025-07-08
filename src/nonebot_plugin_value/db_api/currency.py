@@ -3,7 +3,7 @@ from uuid import uuid4
 from nonebot_plugin_orm import AsyncSession, get_session
 
 from ..models.currency import CurrencyMeta
-from ..models.currency_pyd import CurrencyData
+from ..pyd_models.currency_pyd import CurrencyData
 from ..repository import DEFAULT_CURRENCY_UUID, CurrencyRepository
 
 
@@ -11,7 +11,7 @@ async def list_currencies(session: AsyncSession | None = None):
     """获取已存在的货币
 
     Args:
-        session (AsyncSession): 异步Session
+        session (AsyncSession | None, optional): 异步Session
 
     Returns:
         Sequence[CurrencyMeta]: 返回货币列表
@@ -29,7 +29,7 @@ async def getcurrency(
     """获取一个货币的元信息
 
     Args:
-        session (AsyncSession): SQLAlchemy的异步session
+        session (AsyncSession | None, optional): SQLAlchemy的异步session
         currency_id (str): 货币唯一ID
 
     Returns:
@@ -49,7 +49,7 @@ async def get_or_create_currency(
     """获取或创建新货币（如果存在就获取）
 
     Args:
-        session (AsyncSession): SQLAlchemy的异步session
+        session (AsyncSession | None, optional): SQLAlchemy的异步session
         currency_data (CurrencyData): 货币元信息
 
     Returns:
@@ -81,8 +81,17 @@ async def get_or_create_currency(
             return metadata, True
 
 
-async def get_default_currency(session: AsyncSession) -> CurrencyMeta:
-    """获取默认货币"""
+async def get_default_currency(session: AsyncSession|None=None) -> CurrencyMeta:
+    """获取默认货币
+
+    Args:
+        session (AsyncSession | None, optional): 异步会话. Defaults to None.
+
+    Returns:
+        CurrencyMeta: 货币元数据
+    """
+    if session is None:
+        session = get_session()
     async with session:
         return (
             await get_or_create_currency(
