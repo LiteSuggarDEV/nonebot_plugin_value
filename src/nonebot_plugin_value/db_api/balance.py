@@ -7,11 +7,52 @@ from nonebot_plugin_orm import AsyncSession, get_session
 from nonebot_plugin_value.models.balance import UserAccount
 
 from ..action_type import Method
+from ..db_api.currency import DEFAULT_CURRENCY_UUID
 from ..hook.context import TransactionComplete, TransactionContext
 from ..hook.exception import CancelAction
 from ..hook.hooks_manager import HooksManager
 from ..hook.hooks_type import HooksType
 from ..repository import AccountRepository, TransactionRepository
+
+
+async def del_account(
+    account_id: str, session: AsyncSession | None = None, fail_then_throw: bool = False
+) -> bool:
+    """删除账户
+
+    Args:
+        session (AsyncSession | None, optional): 异步会话. Defaults to None.
+        user_id (str): 用户ID
+    """
+    if session is None:
+        session = get_session()
+    async with session:
+        try:
+            await AccountRepository(session).remove_account(account_id)
+            return True
+        except Exception:
+            if fail_then_throw:
+                raise
+            return False
+
+
+async def list_accounts(
+    session: AsyncSession | None = None, currency_id: str | None = None
+):
+    """列出所有账户
+
+    Args:
+        session (AsyncSession | None, optional): 异步会话. Defaults to None.
+
+    Returns:
+        Sequence[UserAccount]: 所有账户（指定或所有货币的）
+    """
+    if session is None:
+        session = get_session()
+    if currency_id is None:
+        currency_id = DEFAULT_CURRENCY_UUID.hex
+    async with session:
+        return await AccountRepository(session).list_accounts()
 
 
 async def get_or_create_account(

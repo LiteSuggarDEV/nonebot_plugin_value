@@ -1,10 +1,25 @@
 from ..db_api.balance import add_balance as _a_balance
+from ..db_api.balance import del_account as _del_account
 from ..db_api.balance import del_balance as _d_balance
 from ..db_api.balance import get_or_create_account as _go_account
 from ..db_api.balance import transfer_funds as _transfer
 from ..pyd_models.balance_pyd import UserAccountData
 from .api_currency import get_default_currency as _get_default
 
+
+async def del_account(user_id: str, currency_id: str | None = None) -> bool:
+    """删除账户
+
+    Args:
+        user_id (str): 用户ID
+        currency_id (str | None, optional): 货币ID(不填则使用默认货币). Defaults to None.
+
+    Returns:
+        bool: 是否成功
+    """
+    if currency_id is None:
+        currency_id = (await _get_default()).id
+    return await _del_account(user_id)
 
 async def get_or_create_account(
     user_id: str, currency_id: str | None = None

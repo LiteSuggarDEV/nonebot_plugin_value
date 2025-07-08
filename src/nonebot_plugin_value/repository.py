@@ -1,17 +1,17 @@
 # Repository,更加底层的数据库操作接口
 import uuid
 from datetime import datetime
-from uuid import uuid5
+from uuid import uuid1, uuid5
 
 from nonebot_plugin_orm import AsyncSession
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, update
 
 from .models.balance import Transaction, UserAccount
 from .models.currency import CurrencyMeta
 from .pyd_models.currency_pyd import CurrencyData
 
 DEFAULT_NAME = "DEFAULT_CURRENCY_USD"
-DEFAULT_CURRENCY_UUID = uuid5(uuid.NAMESPACE_X500, "nonebot_plugin_value")
+DEFAULT_CURRENCY_UUID = uuid5(uuid.NAMESPACE_X500, DEFAULT_NAME)
 
 
 class CurrencyRepository:
@@ -32,23 +32,57 @@ class CurrencyRepository:
             session.add(currency_meta)
             return currency_meta
 
+    async def update_currency(self, currency_data: CurrencyData) -> CurrencyMeta:
+        """更新货币信息"""
+        async with self.session as session:
+            stmt = (
+                update(CurrencyMeta)
+                .where(CurrencyMeta.id == currency_data.id)
+                .values(**dict(currency_data))
+            )
+            await session.execute(stmt)
+            await session.commit()
+            stmt = select(CurrencyMeta).where(CurrencyMeta.id == currency_data.id)
+            result = await session.execute(stmt)
+            currency_meta = result.scalar_one()
+            return currency_meta
     async def getcurrency(self, currency_id: str) -> CurrencyMeta | None:
         """获取货币信息"""
-        result = await self.session.execute(
-            select(CurrencyMeta).where(CurrencyMeta.id == currency_id)
-        )
-        currency_meta = result.scalar_one_or_none()
-        if currency_meta:
-            self.session.add(currency_meta)
-            return currency_meta
-        return None
+        async with self.session as session:
+            result = await self.session.execute(
+                select(CurrencyMeta).where(CurrencyMeta.id == currency_id)
+            )
+            currency_meta = result.scalar_one_or_none()
+            if currency_meta:
+                session.add(currency_meta)
+                return currency_meta
+            return None
 
     async def list_currencies(self):
         """列出所有货币"""
-        result = await self.session.execute(select(CurrencyMeta))
-        data = result.scalars().all()
-        self.session.add_all(data)
-        return data
+        async with self.session as session:
+            result = await self.session.execute(select(CurrencyMeta))
+            data = result.scalars().all()
+            session.add_all(data)
+            return data
+
+    async def remove_currency(self, currency_id: str):
+        """删除货币（警告！会同时删除所有关联账户！）"""
+        async with self.session as session:
+            currency = (
+                await session.execute(
+                    select(CurrencyMeta).where(CurrencyMeta.id == currency_id)
+                )
+            ).scalar_one_or_none()
+            if not currency:
+                raise ValueError("Currency not found")
+            await session.delete(currency)
+            users = await session.execute(
+                select(UserAccount).where(UserAccount.currency_id == currency_id)
+            )
+            for user in users:
+                await session.delete(user)
+            await session.commit()
 
 
 class AccountRepository:
@@ -132,6 +166,29 @@ class AccountRepository:
 
             return old_balance, new_balance
 
+    async def list_accounts(self, currency_id: str | None = None):
+        """列出所有账户"""
+        async with self.session as session:
+            if not currency_id:
+                result = await session.execute(select(UserAccount))
+            else:
+                result = await session.execute(
+                    select(UserAccount).where(UserAccount.currency_id == currency_id)
+                )
+            data = result.scalars().all()
+            if len(data) > 0:
+                session.add_all(data)
+            return data
+
+    async def remove_account(self, account_id: str):
+        """删除账户"""
+        async with self.session as session:
+            account = await session.get(UserAccount, account_id)
+            if not account:
+                raise ValueError("Account not found")
+            await session.delete(account)
+            await session.commit()
+
 
 class TransactionRepository:
     """交易操作"""
@@ -154,7 +211,9 @@ class TransactionRepository:
             """创建交易记录"""
             if timestamp is None:
                 timestamp = datetime.utcnow()
+            uuid = uuid1().hex
             stmt = insert(Transaction).values(
+                id=uuid,
                 account_id=account_id,
                 currency_id=currency_id,
                 amount=amount,
@@ -167,10 +226,7 @@ class TransactionRepository:
             await session.execute(stmt)
             await session.commit()
             stmt = select(Transaction).where(
-                Transaction.account_id == account_id,
-                Transaction.currency_id == currency_id,
-                Transaction.action == action,
-                Transaction.source == source,
+                Transaction.id == uuid,
                 Transaction.timestamp == timestamp,
             )
             result = await session.execute(stmt)
@@ -189,3 +245,16 @@ class TransactionRepository:
         data = result.scalars().all()
         self.session.add_all(data)
         return data
+
+    async def remove_transaction(self, transaction_id: str):
+        """删除交易记录"""
+        async with self.session as session:
+            transaction = (
+                await session.execute(
+                    select(Transaction).where(Transaction.id == transaction_id)
+                )
+            ).scalar_one_or_none()
+            if not transaction:
+                raise ValueError("Transaction not found")
+            await session.delete(transaction)
+            await session.commit()

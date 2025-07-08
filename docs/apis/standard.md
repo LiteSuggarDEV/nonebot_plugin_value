@@ -24,6 +24,21 @@ async def get_or_create_account(
     ...
 ```
 
+### `~.del_account`
+
+```python
+async def del_account(user_id: str, currency_id: str | None = None) -> bool:
+    """删除账户
+
+    Args:
+        user_id (str): 用户ID
+        currency_id (str | None, optional): 货币ID(不填则使用默认货币). Defaults to None.
+
+    Returns:
+        bool: 是否成功
+    """
+```
+
 ### `~~.add_balance`
 
 ```python
@@ -113,6 +128,21 @@ async def transfer_funds(
 
 <details>
 
+### `~~.update_currency`
+
+```python
+async def update_currency(currency_data: CurrencyData) -> CurrencyData:
+    """更新货币信息
+
+    Args:
+        currency_data (CurrencyData): 货币数据
+
+    Returns:
+        CurrencyData: 货币数据
+    """
+    ...
+```
+
 ### `~~.list_currencies`
 
 ```python
@@ -167,6 +197,21 @@ async def create_currency(currency_data: CurrencyData) -> CurrencyData:
     ...
 ```
 
+### `~~.remove_currency`
+
+```python
+async def remove_currency(currency_id: str):
+    """删除一个货币（警告！这是一个及其危险的操作！这会删除所有关联的账户！）
+
+    Args:
+        currency_id (str): 货币唯一ID
+
+    Returns:
+        bool: 是否删除成功
+    """
+    ...
+```
+
 </details>
 
 ## transaction-API(`~~`代指`~.api.api_transaction`)
@@ -188,6 +233,21 @@ async def get_transaction_history(
 
     Returns:
         list[TransactionData]: 包含交易数据的列表
+    """
+    ...
+```
+
+### `~~.remove_transaction`
+
+```python
+async def remove_transaction(transaction_id: str) -> bool:
+    """删除交易记录
+
+    Args:
+        transaction_id (str): 交易ID
+
+    Returns:
+        bool: 是否成功删除
     """
     ...
 ```
