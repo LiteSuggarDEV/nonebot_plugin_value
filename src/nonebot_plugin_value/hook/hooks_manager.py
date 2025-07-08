@@ -1,3 +1,4 @@
+# 事件预处理/后处理钩子
 from collections.abc import Awaitable, Callable
 
 from nonebot import logger
