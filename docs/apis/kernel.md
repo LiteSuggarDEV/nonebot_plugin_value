@@ -24,12 +24,18 @@ class CurrencyRepository:
         ...
 
     async def createcurrency(self, currency_data: CurrencyData) -> CurrencyMeta:
-        async with self.session as session:
-            """创建新货币"""
-            ...
+        """创建新货币"""
+        ...
+
+    async def update_currency(self, currency_data: CurrencyData) -> CurrencyMeta:
+        """更新货币信息"""
 
     async def getcurrency(self, currency_id: str) -> CurrencyMeta | None:
         """获取货币信息"""
+        ...
+
+    async def remove_currency(self, currency_id: str):
+        """删除货币（警告！会同时删除所有关联账户！）"""
         ...
 ```
 
@@ -65,6 +71,14 @@ class AccountRepository:
         async with self.session as session:
             """原子更新余额"""
             ...
+
+    async def list_accounts(self):
+        """列出所有账户"""
+        ...
+
+    async def remove_account(self, account_id: str):
+        """删除账户"""
+        ...
 ```
 
 </details>
@@ -99,6 +113,10 @@ class TransactionRepository:
 
     async def get_transaction_history(self, account_id: str, limit: int = 100):
         """获取账户交易历史"""
+        ...
+
+    async def remove_transaction(self, transaction_id: str) -> bool:
+        """删除交易记录"""
         ...
 ```
 

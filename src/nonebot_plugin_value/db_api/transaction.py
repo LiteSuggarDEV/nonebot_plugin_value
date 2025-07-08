@@ -23,3 +23,30 @@ async def get_transaction_history(
     return await TransactionRepository(session).get_transaction_history(
         account_id, limit
     )
+
+
+async def remove_transaction(
+    transaction_id: str,
+    session: AsyncSession | None = None,
+    fail_then_throw: bool = False,
+) -> bool:
+    """删除交易记录
+
+    Args:
+        transaction_id (str): 交易ID
+        session (AsyncSession | None, optional): 异步数据库会话. Defaults to None.
+        fail_then_throw (bool, optional): 如果失败则抛出异常. Defaults to False.
+
+    Returns:
+        bool: 是否成功
+    """
+    if session is None:
+        session = get_session()
+    async with session:
+        try:
+            await TransactionRepository(session).remove_transaction(transaction_id)
+            return True
+        except Exception:
+            if fail_then_throw:
+                raise
+            return False

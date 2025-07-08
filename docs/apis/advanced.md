@@ -21,6 +21,37 @@ async def list_currencies(session: AsyncSession | None = None):
     ...
 ```
 
+### `~~.update_currency`
+
+```python
+async def update_currency(
+    currency_data: CurrencyData, session: AsyncSession | None = None
+):
+    """更新一个货币
+
+    Args:
+        currency_data (CurrencyData): 货币元信息
+        session (AsyncSession | None, optional): 异步Session. Defaults to None.
+    
+    Returns:
+        CurrencyMeta: 货币元数据
+    """
+    ...
+```
+
+### `~~.remove_currency`
+
+```python
+async def remove_currency(currency_id: str, session: AsyncSession | None = None):
+    """删除一个货币(警告！会移除关联账户！)
+
+    Args:
+        currency_id (str): 货币ID
+        session (AsyncSession | None, optional): 异步Session. Defaults to None.
+    """
+    ...
+```
+
 ### `~~.getcurrency`
 
 ```python
@@ -101,6 +132,37 @@ async def get_or_create_account(
         UserAccount: 用户数据模型
     """
     ...
+```
+
+### `~~.del_account`
+
+```python
+async def del_account(
+    account_id: str, session: AsyncSession | None = None, fail_then_throw: bool = False
+) -> bool:
+    """删除账户
+
+    Args:
+        session (AsyncSession | None, optional): 异步会话. Defaults to None.
+        user_id (str): 用户ID
+    """
+    ...
+```
+
+### `~~.list_accounts`
+
+```python
+async def list_accounts(
+    session: AsyncSession | None = None, currency_id: str | None = None
+):
+    """列出所有账户
+
+    Args:
+        session (AsyncSession | None, optional): 异步会话. Defaults to None.
+
+    Returns:
+        Sequence[UserAccount]: 所有账户（指定或所有货币的）
+    """
 ```
 
 ### `~~.del_balance`
@@ -206,6 +268,27 @@ async def get_transaction_history(
 
     Returns:
         Sequence[Transaction]: 记录列表
+    """
+    ...
+```
+
+### `~~.remove_transaction`
+
+```python
+async def remove_transaction(
+    transaction_id: str,
+    session: AsyncSession | None = None,
+    fail_then_throw: bool = False,
+) -> bool:
+    """删除交易记录
+
+    Args:
+        transaction_id (str): 交易ID
+        session (AsyncSession | None, optional): 异步数据库会话. Defaults to None.
+        fail_then_throw (bool, optional): 如果失败则抛出异常. Defaults to False.
+
+    Returns:
+        bool: 是否成功
     """
     ...
 ```

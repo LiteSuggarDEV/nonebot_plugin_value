@@ -7,6 +7,37 @@ from ..pyd_models.currency_pyd import CurrencyData
 from ..repository import DEFAULT_CURRENCY_UUID, CurrencyRepository
 
 
+async def update_currency(
+    currency_data: CurrencyData, session: AsyncSession | None = None
+) -> CurrencyMeta:
+    """更新一个货币
+
+    Args:
+        currency_data (CurrencyData): 货币元信息
+        session (AsyncSession | None, optional): 异步Session. Defaults to None.
+
+    Returns:
+        CurrencyMeta: 货币元信息模型
+    """
+    if session is None:
+        session = get_session()
+    async with session:
+        return await CurrencyRepository(session).update_currency(currency_data)
+
+
+async def remove_currency(currency_id: str, session: AsyncSession | None = None):
+    """删除一个货币(警告！会移除关联账户！)
+
+    Args:
+        currency_id (str): 货币ID
+        session (AsyncSession | None, optional): 异步Session. Defaults to None.
+    """
+    if session is None:
+        session = get_session()
+    async with session:
+        await CurrencyRepository(session).remove_currency(currency_id)
+
+
 async def list_currencies(session: AsyncSession | None = None):
     """获取已存在的货币
 
