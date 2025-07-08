@@ -13,7 +13,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
 class PlatformUser(Model):
-    """平台用户表"""
+    """平台用户表(保留了，以后会有用的吧？)"""
 
     __tablename__ = "platform_users"
 

@@ -17,7 +17,17 @@ async def get_transaction_history(
         list[TransactionData]: 包含交易数据的列表
     """
     return [
-        TransactionData.model_validate(transaction)
+        TransactionData(
+            id=transaction.id,
+            account_id=transaction.account_id,
+            currency_id=transaction.currency_id,
+            amount=transaction.amount,
+            action=transaction.action,
+            source=transaction.source,
+            balance_before=transaction.balance_before,
+            balance_after=transaction.balance_after,
+            timestamp=transaction.timestamp,
+        )
         for transaction in await _transaction_history(account_id, limit)
     ]
 

@@ -21,6 +21,7 @@ async def del_account(user_id: str, currency_id: str | None = None) -> bool:
         currency_id = (await _get_default()).id
     return await _del_account(user_id)
 
+
 async def get_or_create_account(
     user_id: str, currency_id: str | None = None
 ) -> UserAccountData:
@@ -36,7 +37,13 @@ async def get_or_create_account(
     if currency_id is None:
         currency_id = (await _get_default()).id
     data = await _go_account(user_id, currency_id)
-    return UserAccountData.model_validate(data)
+    return UserAccountData(
+        id=data.id,
+        user_id=data.user_id,
+        currency_id=data.currency_id,
+        balance=data.balance,
+        last_updated=data.last_updated,
+    )
 
 
 async def add_balance(
