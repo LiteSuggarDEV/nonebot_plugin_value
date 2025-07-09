@@ -22,7 +22,7 @@ class UserAccount(Model):
 
     # 货币外键
     currency_id: Mapped[str] = mapped_column(
-        String(32), ForeignKey("currency_meta.id", ondelete="RESTRICT"), nullable=False
+        String(64), ForeignKey("currency_meta.id", ondelete="CASCADE"), nullable=False
     )
 
     # 账户余额
