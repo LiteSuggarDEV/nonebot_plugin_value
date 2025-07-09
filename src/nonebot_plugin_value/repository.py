@@ -99,7 +99,7 @@ class AccountRepository:
             # 检查账户是否存在
             account = await session.execute(
                 select(UserAccount)
-                .where(UserAccount.user_id == user_id)
+                .where(UserAccount.id == user_id)
                 .where(UserAccount.currency_id == currency_id)
                 .with_for_update()  # 行级锁
             )
@@ -123,7 +123,7 @@ class AccountRepository:
             await session.commit()
 
             stmt = select(UserAccount).where(
-                UserAccount.user_id == user_id, UserAccount.currency_id == currency_id
+                UserAccount.id == user_id, UserAccount.currency_id == currency_id
             )
             result = await session.execute(stmt)
 
