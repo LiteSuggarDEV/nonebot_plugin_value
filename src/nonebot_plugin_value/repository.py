@@ -115,7 +115,7 @@ class AccountRepository:
                 raise ValueError(f"Currency {currency_id} not found")
             session.add(currency)
             stmt = insert(UserAccount).values(
-                user_id=user_id,
+                id=user_id,
                 currency_id=currency_id,
                 balance=currency.default_balance,
             )

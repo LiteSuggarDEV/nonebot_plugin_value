@@ -1,10 +1,11 @@
 [project]
 name = "nonebot-plugin-value"
-version = "0.0.4.post2"
+version = "0.0.5"
 description = "Value API for NoneBot2"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "aiosqlite>=0.21.0",
     "nonebot-plugin-orm>=0.8.1",
     "nonebot2>=2.4.2",
     "pydantic>=2.11.7",
