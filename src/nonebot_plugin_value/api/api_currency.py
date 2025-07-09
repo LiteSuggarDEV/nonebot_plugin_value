@@ -9,6 +9,21 @@ from ..db_api.currency import update_currency as _update_currency
 from ..pyd_models.currency_pyd import CurrencyData
 
 
+async def get_or_create_currency(currency_data: CurrencyData) -> CurrencyData:
+    """获取或者创建货币
+
+    Args:
+        currency_data (CurrencyData): 货币数据
+
+    Returns:
+        CurrencyData: 货币数据
+    """
+    if (data := await get_currency(currency_data.id)) is None:
+        return await create_currency(currency_data)
+    else:
+        return data
+
+
 async def update_currency(currency_data: CurrencyData) -> CurrencyData:
     """更新货币信息
 

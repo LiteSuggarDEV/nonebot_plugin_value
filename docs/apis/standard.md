@@ -143,6 +143,21 @@ async def transfer_funds(
 
 <details>
 
+### `~~.get_or_create_currency`
+
+```python
+async def get_or_create_currency(currency_data: CurrencyData) -> CurrencyData:
+    """获取或者创建货币
+
+    Args:
+        currency_data (CurrencyData): 货币数据
+
+    Returns:
+        CurrencyData: 货币数据
+    """
+    ...
+```
+
 ### `~~.update_currency`
 
 ```python
