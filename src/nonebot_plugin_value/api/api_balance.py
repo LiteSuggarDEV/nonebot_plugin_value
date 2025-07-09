@@ -39,7 +39,7 @@ async def get_or_create_account(
     data = await _go_account(user_id, currency_id)
     return UserAccountData(
         id=data.id,
-        user_id=data.user_id,
+        user_id=data.id,
         currency_id=data.currency_id,
         balance=data.balance,
         last_updated=data.last_updated,
