@@ -46,6 +46,7 @@ class CurrencyRepository:
             result = await session.execute(stmt)
             currency_meta = result.scalar_one()
             return currency_meta
+
     async def getcurrency(self, currency_id: str) -> CurrencyMeta | None:
         """获取货币信息"""
         async with self.session as session:
@@ -96,30 +97,34 @@ class AccountRepository:
     ) -> UserAccount:
         async with self.session as session:
             """获取或创建用户账户"""
-            # 检查账户是否存在
-            account = await session.execute(
-                select(UserAccount)
-                .where(UserAccount.id == user_id)
-                .where(UserAccount.currency_id == currency_id)
-                .with_for_update()  # 行级锁
-            )
-            account = account.scalar_one_or_none()
+            # 获取货币配置
+            stmt = select(CurrencyMeta).where(CurrencyMeta.id == currency_id)
+            result = await session.execute(stmt)
+            currency = result.scalar_one_or_none()
+            if currency is None:
+                raise ValueError(f"Currency {currency_id} not found")
 
-            if account:
+            # 检查账户是否存在
+            stmt = select(UserAccount).where(
+                UserAccount.id == user_id,
+                UserAccount.currency_id == currency_id,
+            )
+            result = await session.execute(stmt)
+            account = result.scalar_one_or_none()
+
+            if account is not None:
                 session.add(account)
                 return account
 
-            # 获取货币配置
-            currency = await session.get(CurrencyMeta, currency_id)
-            if not currency:
-                raise ValueError(f"Currency {currency_id} not found")
             session.add(currency)
-            stmt = insert(UserAccount).values(
+            account = UserAccount(
+                uni_id=uuid5(uuid.NAMESPACE_X500, f"{user_id}{currency_id}").hex,
                 id=user_id,
                 currency_id=currency_id,
                 balance=currency.default_balance,
+                last_updated=datetime.utcnow(),
             )
-            await session.execute(stmt)
+            session.add(account)
             await session.commit()
 
             stmt = select(UserAccount).where(
@@ -127,8 +132,9 @@ class AccountRepository:
                 UserAccount.currency_id == currency_id,
             )
             result = await session.execute(stmt)
-
-            return result.scalar_one()
+            account = result.scalar_one()
+            session.add(account)
+            return account
 
     async def get_balance(self, account_id: str) -> float | None:
         """获取账户余额"""
@@ -139,12 +145,16 @@ class AccountRepository:
         self, account_id: str, delta: float
     ) -> tuple[float, float]:
         async with self.session as session:
-            """原子更新余额"""
+            """更新余额"""
 
-            # 获取账户（带锁）
-            account = await session.get(UserAccount, account_id)
+            # 获取账户
+            account = (
+                await session.execute(
+                    select(UserAccount).where(UserAccount.id == account_id)
+                )
+            ).scalar_one_or_none()
 
-            if not account:
+            if account is None:
                 raise ValueError("Account not found")
             session.add(account)
 

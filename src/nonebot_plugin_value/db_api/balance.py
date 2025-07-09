@@ -37,18 +37,17 @@ async def del_account(
 
 
 async def list_accounts(
-    session: AsyncSession | None = None, currency_id: str | None = None
+    session: AsyncSession,
+    currency_id: str | None = None,
 ):
     """列出所有账户
 
     Args:
-        session (AsyncSession | None, optional): 异步会话. Defaults to None.
+        session (AsyncSession): 异步会话. Defaults to None.
 
     Returns:
         Sequence[UserAccount]: 所有账户（指定或所有货币的）
     """
-    if session is None:
-        session = get_session()
     if currency_id is None:
         currency_id = DEFAULT_CURRENCY_UUID.hex
     async with session:
@@ -58,20 +57,18 @@ async def list_accounts(
 async def get_or_create_account(
     user_id: str,
     currency_id: str,
-    session: AsyncSession | None = None,
+    session: AsyncSession,
 ) -> UserAccount:
     """获取或创建一个货币的账户
 
     Args:
         user_id (str): 用户ID
         currency_id (str): 货币ID
-        session (AsyncSession | None, optional): 异步会话. Defaults to None.
+        session (AsyncSession): 异步会话. Defaults to None.
 
     Returns:
         UserAccount: 用户数据模型
     """
-    if session is None:
-        session = get_session()
     async with session:
         return await AccountRepository(session).get_or_create_account(
             user_id, currency_id
@@ -107,7 +104,8 @@ async def del_balance(
         has_commit: bool = False
         try:
             account = await account_repo.get_or_create_account(user_id, currency_id)
-            balance_before = await account_repo.get_balance(account.id)
+            session.add(account)
+            balance_before = account.balance
             if balance_before is None:
                 return {"success": False, "message": "账户不存在"}
             balance_after = balance_before - amount
@@ -183,7 +181,8 @@ async def add_balance(
         has_commit: bool = False
         try:
             account = await account_repo.get_or_create_account(user_id, currency_id)
-            balance_before = await account_repo.get_balance(account.id)
+            session.add(account)
+            balance_before = account.balance
             if balance_before is None:
                 raise ValueError("账户不存在")
             try:
