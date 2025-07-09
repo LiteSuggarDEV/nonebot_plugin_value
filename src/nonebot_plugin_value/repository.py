@@ -142,7 +142,7 @@ class AccountRepository:
         return account.balance if account else None
 
     async def update_balance(
-        self, account_id: str, delta: float
+        self, account_id: str, amount: float, currency_id: str
     ) -> tuple[float, float]:
         async with self.session as session:
             """更新余额"""
@@ -150,7 +150,10 @@ class AccountRepository:
             # 获取账户
             account = (
                 await session.execute(
-                    select(UserAccount).where(UserAccount.id == account_id)
+                    select(UserAccount).where(
+                        UserAccount.id == account_id,
+                        UserAccount.currency_id == currency_id,
+                    )
                 )
             ).scalar_one_or_none()
 
@@ -162,7 +165,7 @@ class AccountRepository:
             currency = await session.get(CurrencyMeta, account.currency_id)
 
             # 计算新余额
-            new_balance = account.balance + delta
+            new_balance = account.balance + amount
 
             # 负余额检查
             if new_balance < 0 and not getattr(currency, "allow_negative", False):
@@ -194,10 +197,12 @@ class AccountRepository:
     async def remove_account(self, account_id: str):
         """删除账户"""
         async with self.session as session:
-            account = await session.get(UserAccount, account_id)
-            if not account:
+            stmt = select(UserAccount).where(UserAccount.id == account_id).with_for_update()
+            accounts = (await session.execute(stmt)).scalars().all()
+            if not accounts:
                 raise ValueError("Account not found")
-            await session.delete(account)
+            for account in accounts:
+                await session.delete(account)
             await session.commit()
 
 
