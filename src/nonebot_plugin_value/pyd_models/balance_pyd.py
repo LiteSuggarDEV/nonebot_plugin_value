@@ -5,12 +5,6 @@ from pydantic import Field
 from .base_pyd import BaseData
 
 
-class PlatformUserData(BaseData):
-    id: str = Field(default="")
-    platform: str = Field(default="")
-    user_id: str = Field(default="")
-
-
 class UserAccountData(BaseData):
     id: str = Field(default="")
     user_id: str = Field(default="")

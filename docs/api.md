@@ -2,7 +2,11 @@
 
 ## 数据模型关系图
 
+<center>
+
 ![数据库结构图](image.png)
+
+</center>
 
 ## API 文档
 

@@ -1,37 +1,32 @@
 erDiagram
-    PlatformUser ||--o{ UserAccount : "1..*"
-    CurrencyMeta ||--o{ UserAccount : "1..*"
-    UserAccount ||--o{ Transaction : "1..*"
-    CurrencyMeta ||--o{ Transaction : "1..*"
+    CURRENCY_META ||--o{ USER_ACCOUNT : "1:n"
+    CURRENCY_META ||--o{ TRANSACTION : "1:n"
+    USER_ACCOUNT ||--o{ TRANSACTION : "1:n"
 
-    PlatformUser {
-        UUID id
-        String platform
-        String user_id
+    CURRENCY_META {
+        string id PK "UUID主键"
+        string display_name "显示名称"
+        string symbol "货币符号"
+        float default_balance "默认余额"
+        boolean allow_negative "允许负余额"
+        datetime created_at "创建时间"
     }
 
-    CurrencyMeta {
-        String id
-        String display_name
-        String symbol
-        Numeric default_balance
-        Boolean allow_negative
+    USER_ACCOUNT {
+        string id PK "UUID主键"
+        string currency_id FK "货币ID (与id组成唯一约束)"
+        float balance "账户余额"
+        datetime last_updated "最后更新时间"
     }
 
-    UserAccount {
-        UUID id
-        UUID user_id
-        String currency_id
-        Numeric balance
-    }
-
-    Transaction {
-        UUID id
-        UUID account_id
-        String currency_id
-        Numeric amount
-        String action
-        String source
-        Numeric balance_before
-        Numeric balance_after
+    TRANSACTION {
+        string id PK "交易ID"
+        string account_id FK "账户ID (索引)"
+        string currency_id FK "货币ID"
+        float amount "交易金额"
+        string action "交易类型"
+        string source "交易来源"
+        float balance_before "交易前余额"
+        float balance_after "交易后余额"
+        datetime timestamp "交易时间 (索引)"
     }

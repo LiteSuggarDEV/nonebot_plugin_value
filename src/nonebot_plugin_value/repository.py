@@ -123,7 +123,8 @@ class AccountRepository:
             await session.commit()
 
             stmt = select(UserAccount).where(
-                UserAccount.id == user_id, UserAccount.currency_id == currency_id
+                UserAccount.id == user_id,
+                UserAccount.currency_id == currency_id,
             )
             result = await session.execute(stmt)
 
