@@ -52,27 +52,25 @@ class AccountRepository:
     """账户操作"""
 
     def __init__(self, session: AsyncSession):
-        ...
+        self.session = session
 
     async def get_or_create_account(
         self, user_id: str, currency_id: str
     ) -> UserAccount:
-        async with self.session as session:
-            """获取或创建用户账户"""
-            ....
+        """获取或创建用户账户"""
+        ...
 
     async def get_balance(self, account_id: str) -> float | None:
         """获取账户余额"""
         ...
 
     async def update_balance(
-        self, account_id: str, delta: float
+        self, account_id: str, amount: float, currency_id: str
     ) -> tuple[float, float]:
-        async with self.session as session:
-            """原子更新余额"""
-            ...
+        """更新余额"""
+        ...
 
-    async def list_accounts(self):
+    async def list_accounts(self, currency_id: str | None = None):
         """列出所有账户"""
         ...
 
@@ -107,9 +105,8 @@ class TransactionRepository:
         balance_after: float,
         timestamp: datetime | None = None,
     ) -> Transaction:
-        async with self.session as session:
-            """创建交易记录"""
-            ...
+        """创建交易记录"""
+        ...
 
     async def get_transaction_history(self, account_id: str, limit: int = 100):
         """获取账户交易历史"""
