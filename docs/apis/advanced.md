@@ -1,6 +1,6 @@
-# Value-进阶API文档
+# Value-高级API文档
 
-> **本API为服务层API，包含核心逻辑**
+> **本API为服务层API，包含有关数据库操作的核心逻辑**
 
 ## currency-API(`~~`代指`~.db_api.balance`)
 
