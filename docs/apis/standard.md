@@ -1,6 +1,6 @@
 # Value-标准API文档
 
-> **本API为无数据库直接操作的表现层API**
+> **标准API文档**
 
 ## balance-API(`~~`代指`~.api.api_balance`)
 
