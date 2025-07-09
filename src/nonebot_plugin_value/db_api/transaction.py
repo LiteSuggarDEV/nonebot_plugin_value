@@ -1,12 +1,12 @@
-from nonebot_plugin_orm import AsyncSession, get_session
+from nonebot_plugin_orm import AsyncSession
 
 from ..repository import TransactionRepository
 
 
 async def get_transaction_history(
     account_id: str,
+    session: AsyncSession,
     limit: int = 100,
-    session: AsyncSession | None = None,
 ):
     """获取一个用户的交易记录
 
@@ -18,8 +18,6 @@ async def get_transaction_history(
     Returns:
         Sequence[Transaction]: 记录列表
     """
-    if session is None:
-        session = get_session()
     return await TransactionRepository(session).get_transaction_history(
         account_id, limit
     )
@@ -27,7 +25,7 @@ async def get_transaction_history(
 
 async def remove_transaction(
     transaction_id: str,
-    session: AsyncSession | None = None,
+    session: AsyncSession,
     fail_then_throw: bool = False,
 ) -> bool:
     """删除交易记录
@@ -40,8 +38,6 @@ async def remove_transaction(
     Returns:
         bool: 是否成功
     """
-    if session is None:
-        session = get_session()
     async with session:
         try:
             await TransactionRepository(session).remove_transaction(transaction_id)

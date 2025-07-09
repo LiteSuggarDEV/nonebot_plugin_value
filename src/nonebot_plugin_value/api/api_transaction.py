@@ -1,3 +1,5 @@
+from nonebot_plugin_orm import get_session
+
 from ..db_api.transaction import get_transaction_history as _transaction_history
 from ..db_api.transaction import remove_transaction as _remove_transaction
 from ..pyd_models.transaction_pyd import TransactionData
@@ -16,20 +18,25 @@ async def get_transaction_history(
     Returns:
         list[TransactionData]: 包含交易数据的列表
     """
-    return [
-        TransactionData(
-            id=transaction.id,
-            account_id=transaction.account_id,
-            currency_id=transaction.currency_id,
-            amount=transaction.amount,
-            action=transaction.action,
-            source=transaction.source,
-            balance_before=transaction.balance_before,
-            balance_after=transaction.balance_after,
-            timestamp=transaction.timestamp,
-        )
-        for transaction in await _transaction_history(account_id, limit)
-    ]
+    async with get_session() as session:
+        return [
+            TransactionData(
+                id=transaction.id,
+                account_id=transaction.account_id,
+                currency_id=transaction.currency_id,
+                amount=transaction.amount,
+                action=transaction.action,
+                source=transaction.source,
+                balance_before=transaction.balance_before,
+                balance_after=transaction.balance_after,
+                timestamp=transaction.timestamp,
+            )
+            for transaction in await _transaction_history(
+                account_id,
+                session,
+                limit,
+            )
+        ]
 
 
 async def remove_transaction(transaction_id: str) -> bool:
@@ -41,4 +48,8 @@ async def remove_transaction(transaction_id: str) -> bool:
     Returns:
         bool: 是否成功删除
     """
-    return await _remove_transaction(transaction_id)
+    async with get_session() as session:
+        return await _remove_transaction(
+            transaction_id,
+            session,
+        )

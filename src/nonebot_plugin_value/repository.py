@@ -118,8 +118,9 @@ class AccountRepository:
 
             session.add(currency)
             account = UserAccount(
+                uni_id=uuid5(uuid.NAMESPACE_X500, f"{user_id}{currency_id}").hex,
                 id=user_id,
-                currency_id=currency.id,
+                currency_id=currency_id,
                 balance=currency.default_balance,
                 last_updated=datetime.utcnow(),
             )
@@ -128,10 +129,12 @@ class AccountRepository:
 
             stmt = select(UserAccount).where(
                 UserAccount.id == user_id,
-                UserAccount.currency_id == currency.id,
+                UserAccount.currency_id == currency_id,
             )
             result = await session.execute(stmt)
-            return result.scalar_one()
+            account = result.scalar_one()
+            session.add(account)
+            return account
 
     async def get_balance(self, account_id: str) -> float | None:
         """获取账户余额"""

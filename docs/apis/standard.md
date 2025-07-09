@@ -6,6 +6,21 @@
 
 <details>
 
+### `~~.list_accounts`
+
+```python
+async def list_accounts(currency_id: str | None = None) -> list[UserAccountData]:
+    """获取指定货币（或默认）的账户列表
+
+    Args:
+        currency_id (str | None, optional): 货币ID. Defaults to None.
+
+    Returns:
+        list[UserAccountData]: 包含用户数据的列表
+    """
+    ...
+```
+
 ### `~~.get_or_create_account`
 
 ```python

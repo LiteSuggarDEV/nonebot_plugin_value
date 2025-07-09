@@ -1,10 +1,35 @@
+from nonebot_plugin_orm import get_session
+
 from ..db_api.balance import add_balance as _a_balance
 from ..db_api.balance import del_account as _del_account
 from ..db_api.balance import del_balance as _d_balance
 from ..db_api.balance import get_or_create_account as _go_account
 from ..db_api.balance import transfer_funds as _transfer
+from ..db_api.balance import list_accounts as _list_accounts
 from ..pyd_models.balance_pyd import UserAccountData
 from .api_currency import get_default_currency as _get_default
+
+
+async def list_accounts(currency_id: str | None = None) -> list[UserAccountData]:
+    """获取指定货币（或默认）的账户列表
+
+    Args:
+        currency_id (str | None, optional): 货币ID. Defaults to None.
+
+    Returns:
+        list[UserAccountData]: 包含用户数据的列表
+    """
+    async with get_session() as session:
+        return [
+            UserAccountData(
+                id=account.id,
+                uni_id=account.uni_id,
+                currency_id=account.currency_id,
+                balance=account.balance,
+                last_updated=account.last_updated,
+            )
+            for account in await _list_accounts(session, currency_id)
+        ]
 
 
 async def del_account(user_id: str, currency_id: str | None = None) -> bool:
@@ -36,14 +61,15 @@ async def get_or_create_account(
     """
     if currency_id is None:
         currency_id = (await _get_default()).id
-    data = await _go_account(user_id, currency_id)
-    return UserAccountData(
-        id=data.id,
-        user_id=data.id,
-        currency_id=data.currency_id,
-        balance=data.balance,
-        last_updated=data.last_updated,
-    )
+    async with get_session() as session:
+        data = await _go_account(user_id, currency_id, session)
+        return UserAccountData(
+            id=data.id,
+            uni_id=data.uni_id,
+            currency_id=data.currency_id,
+            balance=data.balance,
+            last_updated=data.last_updated,
+        )
 
 
 async def add_balance(
@@ -66,6 +92,7 @@ async def add_balance(
     Returns:
         UserAccountData: 用户账户数据
     """
+
     if currency_id is None:
         currency_id = (await _get_default()).id
     data = await _a_balance(user_id, currency_id, amount, source)

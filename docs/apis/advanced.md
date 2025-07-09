@@ -9,11 +9,11 @@
 ### `~~.list_currencies`
 
 ```python
-async def list_currencies(session: AsyncSession | None = None):
+async def list_currencies(session: AsyncSession):
     """获取已存在的货币
 
     Args:
-        session (AsyncSession | None, optional): 异步Session
+        session (AsyncSession): 异步Session
 
     Returns:
         Sequence[CurrencyMeta]: 返回货币列表
@@ -25,16 +25,17 @@ async def list_currencies(session: AsyncSession | None = None):
 
 ```python
 async def update_currency(
-    currency_data: CurrencyData, session: AsyncSession | None = None
-):
+    currency_data: CurrencyData,
+    session: AsyncSession,
+) -> CurrencyMeta:
     """更新一个货币
 
     Args:
         currency_data (CurrencyData): 货币元信息
-        session (AsyncSession | None, optional): 异步Session. Defaults to None.
-    
+        session (AsyncSession): 异步Session. Defaults to None.
+
     Returns:
-        CurrencyMeta: 货币元数据
+        CurrencyMeta: 货币元信息模型
     """
     ...
 ```
@@ -42,12 +43,12 @@ async def update_currency(
 ### `~~.remove_currency`
 
 ```python
-async def remove_currency(currency_id: str, session: AsyncSession | None = None):
+async def remove_currency(currency_id: str, session: AsyncSession):
     """删除一个货币(警告！会移除关联账户！)
 
     Args:
         currency_id (str): 货币ID
-        session (AsyncSession | None, optional): 异步Session. Defaults to None.
+        session (AsyncSession ): 异步Session.
     """
     ...
 ```
@@ -55,13 +56,11 @@ async def remove_currency(currency_id: str, session: AsyncSession | None = None)
 ### `~~.getcurrency`
 
 ```python
-async def getcurrency(
-    currency_id: str, session: AsyncSession | None = None
-) -> CurrencyMeta | None:
+async def getcurrency(currency_id: str, session: AsyncSession) -> CurrencyMeta | None:
     """获取一个货币的元信息
 
     Args:
-        session (AsyncSession | None, optional): SQLAlchemy的异步session
+        session (AsyncSession): SQLAlchemy的异步session
         currency_id (str): 货币唯一ID
 
     Returns:
@@ -75,12 +74,12 @@ async def getcurrency(
 ```python
 async def get_or_create_currency(
     currency_data: CurrencyData,
-    session: AsyncSession | None = None,
+    session: AsyncSession,
 ) -> tuple[CurrencyMeta, bool]:
     """获取或创建新货币（如果存在就获取）
 
     Args:
-        session (AsyncSession | None, optional): SQLAlchemy的异步session
+        session (AsyncSession): SQLAlchemy的异步session
         currency_data (CurrencyData): 货币元信息
 
     Returns:
@@ -92,7 +91,7 @@ async def get_or_create_currency(
 ### `~~.get_default_currency`
 
 ```python
-async def get_default_currency(session: AsyncSession|None=None) -> CurrencyMeta:
+async def get_default_currency(session: AsyncSession) -> CurrencyMeta:
     """获取默认货币
 
     Args:
@@ -119,14 +118,14 @@ async def get_default_currency(session: AsyncSession|None=None) -> CurrencyMeta:
 async def get_or_create_account(
     user_id: str,
     currency_id: str,
-    session: AsyncSession | None = None,
+    session: AsyncSession,
 ) -> UserAccount:
     """获取或创建一个货币的账户
 
     Args:
         user_id (str): 用户ID
         currency_id (str): 货币ID
-        session (AsyncSession | None, optional): 异步会话. Defaults to None.
+        session (AsyncSession): 异步会话. Defaults to None.
 
     Returns:
         UserAccount: 用户数据模型
@@ -153,16 +152,18 @@ async def del_account(
 
 ```python
 async def list_accounts(
-    session: AsyncSession | None = None, currency_id: str | None = None
+    session: AsyncSession,
+    currency_id: str | None = None,
 ):
     """列出所有账户
 
     Args:
-        session (AsyncSession | None, optional): 异步会话. Defaults to None.
+        session (AsyncSession): 异步会话. Defaults to None.
 
     Returns:
         Sequence[UserAccount]: 所有账户（指定或所有货币的）
     """
+    ...
 ```
 
 ### `~~.del_balance`

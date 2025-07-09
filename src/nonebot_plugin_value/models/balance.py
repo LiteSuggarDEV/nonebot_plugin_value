@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 
 from nonebot_plugin_orm import Model
@@ -17,8 +18,11 @@ class UserAccount(Model):
 
     __tablename__ = "user_accounts"
 
-    # UUID作为主键（由外部算法生成）
-    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    # 每种货币账户的唯一ID(id currency_id-UUID.hex)
+    uni_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+
+    # 用户ID
+    id: Mapped[str] = mapped_column(String(64))
 
     # 货币外键
     currency_id: Mapped[str] = mapped_column(
@@ -42,6 +46,15 @@ class UserAccount(Model):
         Index("idx_usercurrency", "id", "currency_id"),
     )
 
+    def __init__(self, **kwargs):
+        if "id" in kwargs and "currency_id" in kwargs:
+            if "uni_id" not in kwargs:
+                namespace = uuid.NAMESPACE_X500
+                uni_id_val = uuid.uuid5(namespace, kwargs["id"] + kwargs["currency_id"])
+                kwargs["id"] = uni_id_val
+        else:
+            raise ValueError("id and currency_id must be provided")
+        super().__init__(**kwargs)
 
 class Transaction(Model):
     """交易记录表"""
