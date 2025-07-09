@@ -123,7 +123,11 @@ async def del_balance(
                 logger.warning(f"取消了交易：{e.message}")
                 return {"success": True, "message": f"取消了交易：{e.message}"}
             has_commit = True
-            await account_repo.update_balance(account.id, balance_after)
+            await account_repo.update_balance(
+                account.id,
+                balance_after,
+                currency_id,
+            )
             await tx_repo.create_transaction(
                 account.id,
                 currency_id,
@@ -146,10 +150,10 @@ async def del_balance(
                 )
             finally:
                 return {"success": True, "message": "金额减少成功"}
-        except Exception as e:
+        except Exception:
             if has_commit:
                 await session.rollback()
-            return {"success": False, "message": str(e)}
+            raise
 
 
 async def add_balance(
@@ -209,7 +213,15 @@ async def add_balance(
                 account.balance,
                 balance_after,
             )
-            await account_repo.update_balance(account.id, balance_after)
+            # 在更新余额前重新获取账户对象以避免DetachedInstanceError
+            updated_account = await account_repo.get_or_create_account(
+                user_id, currency_id
+            )
+            await account_repo.update_balance(
+                updated_account.id,
+                balance_after,
+                currency_id,
+            )
 
             await session.commit()
             try:
@@ -226,10 +238,10 @@ async def add_balance(
             finally:
                 return {"success": True, "message": "操作成功"}
 
-        except Exception as e:
+        except Exception:
             if has_commit:
                 await session.rollback()
-            return {"success": False, "message": str(e)}
+            raise
 
 
 async def transfer_funds(
@@ -255,6 +267,8 @@ async def transfer_funds(
     """
     if session is None:
         session = get_session()
+    if amount <= 0:
+        return {"success": False, "message": "金额必须大于0"}
     async with session:
         account_repo = AccountRepository(session)
         tx_repo = TransactionRepository(session)
@@ -295,10 +309,14 @@ async def transfer_funds(
                 logger.info(f"取消了交易：{e.message}")
                 return {"success": True, "message": f"取消了交易：{e.message}"}
             from_balance_before, from_balance_after = await account_repo.update_balance(
-                from_account.id, -amount
+                from_account.id,
+                -amount,
+                currency_id,
             )
             to_balance_before, to_balance_after = await account_repo.update_balance(
-                to_account.id, amount
+                to_account.id,
+                amount,
+                currency_id,
             )
             timestamp = datetime.utcnow()
             await tx_repo.create_transaction(
@@ -352,7 +370,7 @@ async def transfer_funds(
                     "to_balance": to_balance_after,
                 }
 
-        except Exception as e:
+        except Exception:
             # 回滚事务
             await session.rollback()
-            return {"success": False, "error": str(e)}
+            raise
