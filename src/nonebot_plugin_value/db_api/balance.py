@@ -106,7 +106,7 @@ async def del_balance(
         try:
             account = await account_repo.get_or_create_account(user_id, currency_id)
             session.add(account)
-            balance_before = account.balance
+            balance_before = float(account.balance)
             account_id = account.id
             if balance_before is None:
                 return {"success": False, "message": "账户不存在"}
@@ -189,7 +189,7 @@ async def add_balance(
             account = await account_repo.get_or_create_account(user_id, currency_id)
             session.add(account)
             account_id = account.id
-            balance_before = account.balance
+            balance_before = float(account.balance)
             if balance_before is None:
                 raise ValueError("账户不存在")
             try:

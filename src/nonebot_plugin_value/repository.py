@@ -191,21 +191,19 @@ class AccountRepository:
             currency = await session.get(CurrencyMeta, account.currency_id)
             session.add(currency)
 
-            # 计算新余额
-            new_balance = account.balance + amount
 
             # 负余额检查
-            if new_balance < 0 and not getattr(currency, "allow_negative", False):
+            if amount < 0 and not getattr(currency, "allow_negative", False):
                 raise ValueError("Insufficient funds")
 
             # 记录原始余额
             old_balance = account.balance
 
             # 更新余额
-            account.balance = new_balance
+            account.balance = amount
             await session.commit()
 
-            return old_balance, new_balance
+            return old_balance, amount
 
     async def list_accounts(self, currency_id: str | None = None):
         """列出所有账户"""
