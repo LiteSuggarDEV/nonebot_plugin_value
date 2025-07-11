@@ -31,6 +31,7 @@ async def del_account(
             await AccountRepository(session).remove_account(account_id)
             return True
         except Exception:
+            await session.rollback()
             if fail_then_throw:
                 raise
             return False
@@ -94,8 +95,8 @@ async def del_balance(
     Returns:
         dict[str, Any]: 包含是否成功的说明
     """
-    if not amount < 0:
-        return {"success": False, "message": "减少金额不能大于0"}
+    if not amount > 0:
+        return {"success": False, "message": "减少金额不能小于0"}
     if session is None:
         session = get_session()
     async with session:
@@ -106,6 +107,7 @@ async def del_balance(
             account = await account_repo.get_or_create_account(user_id, currency_id)
             session.add(account)
             balance_before = account.balance
+            account_id = account.id
             if balance_before is None:
                 return {"success": False, "message": "账户不存在"}
             balance_after = balance_before - amount
@@ -124,12 +126,12 @@ async def del_balance(
                 return {"success": True, "message": f"取消了交易：{e.message}"}
             has_commit = True
             await account_repo.update_balance(
-                account.id,
+                account_id,  # 使用提前获取的account_id
                 balance_after,
                 currency_id,
             )
             await tx_repo.create_transaction(
-                account.id,
+                account_id,  # 使用提前获取的account_id
                 currency_id,
                 amount,
                 Method.transfer_out(),
@@ -186,6 +188,7 @@ async def add_balance(
         try:
             account = await account_repo.get_or_create_account(user_id, currency_id)
             session.add(account)
+            account_id = account.id
             balance_before = account.balance
             if balance_before is None:
                 raise ValueError("账户不存在")
@@ -203,14 +206,14 @@ async def add_balance(
                 logger.warning(f"取消了交易：{e.message}")
                 return {"success": True, "message": f"取消了交易：{e.message}"}
             has_commit = True
-            balance_after = account.balance + amount
+            balance_after = balance_before + amount
             await tx_repo.create_transaction(
-                account.id,
+                account_id,
                 currency_id,
                 amount,
                 Method.deposit(),
                 source,
-                account.balance,
+                balance_before,
                 balance_after,
             )
             # 在更新余额前重新获取账户对象以避免DetachedInstanceError
@@ -274,14 +277,20 @@ async def transfer_funds(
         tx_repo = TransactionRepository(session)
 
         from_account = await account_repo.get_or_create_account(
-            fromuser_id, currency_id
+            fromuser_id,
+            currency_id,
         )
         session.add(from_account)
-        to_account = await account_repo.get_or_create_account(touser_id, currency_id)
+        to_account = await account_repo.get_or_create_account(
+            touser_id,
+            currency_id,
+        )
         session.add(to_account)
 
         from_balance_before = from_account.balance
         to_balance_before = to_account.balance
+        from_account_id = from_account.id
+        to_account_id = to_account.id
 
         try:
             if amount<=0:
@@ -309,18 +318,18 @@ async def transfer_funds(
                 logger.info(f"取消了交易：{e.message}")
                 return {"success": True, "message": f"取消了交易：{e.message}"}
             from_balance_before, from_balance_after = await account_repo.update_balance(
-                from_account.id,
+                from_account_id,
                 -amount,
                 currency_id,
             )
             to_balance_before, to_balance_after = await account_repo.update_balance(
-                to_account.id,
+                to_account_id,
                 amount,
                 currency_id,
             )
             timestamp = datetime.utcnow()
             await tx_repo.create_transaction(
-                account_id=from_account.id,
+                account_id=from_account_id,
                 currency_id=currency_id,
                 amount=-amount,
                 action="TRANSFER_OUT",
@@ -330,7 +339,7 @@ async def transfer_funds(
                 timestamp=timestamp,
             )
             await tx_repo.create_transaction(
-                account_id=to_account.id,
+                account_id=to_account_id,
                 currency_id=currency_id,
                 amount=amount,
                 action="TRANSFER_IN",

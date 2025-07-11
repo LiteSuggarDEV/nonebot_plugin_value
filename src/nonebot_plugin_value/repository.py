@@ -189,6 +189,7 @@ class AccountRepository:
 
             # 获取货币规则
             currency = await session.get(CurrencyMeta, account.currency_id)
+            session.add(currency)
 
             # 计算新余额
             new_balance = account.balance + amount
@@ -210,10 +211,12 @@ class AccountRepository:
         """列出所有账户"""
         async with self.session as session:
             if not currency_id:
-                result = await session.execute(select(UserAccount))
+                result = await session.execute(select(UserAccount).with_for_update())
             else:
                 result = await session.execute(
-                    select(UserAccount).where(UserAccount.currency_id == currency_id)
+                    select(UserAccount)
+                    .where(UserAccount.currency_id == currency_id)
+                    .with_for_update()
                 )
             data = result.scalars().all()
             if len(data) > 0:
@@ -291,6 +294,7 @@ class TransactionRepository:
             .where(Transaction.account_id == account_id)
             .order_by(Transaction.timestamp.desc())
             .limit(limit)
+            .with_for_update()
         )
         data = result.scalars().all()
         self.session.add_all(data)
