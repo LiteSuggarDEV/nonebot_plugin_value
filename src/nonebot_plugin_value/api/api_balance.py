@@ -19,6 +19,8 @@ async def list_accounts(currency_id: str | None = None) -> list[UserAccountData]
     Returns:
         list[UserAccountData]: 包含用户数据的列表
     """
+    if currency_id is None:
+        currency_id = (await _get_default()).id
     async with get_session() as session:
         return [
             UserAccountData(
