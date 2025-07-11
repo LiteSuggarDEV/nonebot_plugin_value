@@ -26,7 +26,11 @@ class CurrencyRepository:
             stmt = insert(CurrencyMeta).values(**dict(currency_data))
             await session.execute(stmt)
             await session.commit()
-            stmt = select(CurrencyMeta).where(CurrencyMeta.id == currency_data.id)
+            stmt = (
+                select(CurrencyMeta)
+                .where(CurrencyMeta.id == currency_data.id)
+                .with_for_update()
+            )
             result = await session.execute(stmt)
             currency_meta = result.scalar_one()
             session.add(currency_meta)
@@ -42,7 +46,11 @@ class CurrencyRepository:
             )
             await session.execute(stmt)
             await session.commit()
-            stmt = select(CurrencyMeta).where(CurrencyMeta.id == currency_data.id)
+            stmt = (
+                select(CurrencyMeta)
+                .where(CurrencyMeta.id == currency_data.id)
+                .with_for_update()
+            )
             result = await session.execute(stmt)
             currency_meta = result.scalar_one()
             return currency_meta
@@ -72,14 +80,18 @@ class CurrencyRepository:
         async with self.session as session:
             currency = (
                 await session.execute(
-                    select(CurrencyMeta).where(CurrencyMeta.id == currency_id)
+                    select(CurrencyMeta)
+                    .where(CurrencyMeta.id == currency_id)
+                    .with_for_update()
                 )
             ).scalar_one_or_none()
             if not currency:
                 raise ValueError("Currency not found")
             await session.delete(currency)
             users = await session.execute(
-                select(UserAccount).where(UserAccount.currency_id == currency_id)
+                select(UserAccount)
+                .where(UserAccount.currency_id == currency_id)
+                .with_for_update()
             )
             for user in users:
                 await session.delete(user)
@@ -98,16 +110,24 @@ class AccountRepository:
         async with self.session as session:
             """获取或创建用户账户"""
             # 获取货币配置
-            stmt = select(CurrencyMeta).where(CurrencyMeta.id == currency_id)
+            stmt = (
+                select(CurrencyMeta)
+                .where(CurrencyMeta.id == currency_id)
+                .with_for_update()
+            )
             result = await session.execute(stmt)
             currency = result.scalar_one_or_none()
             if currency is None:
                 raise ValueError(f"Currency {currency_id} not found")
 
             # 检查账户是否存在
-            stmt = select(UserAccount).where(
-                UserAccount.id == user_id,
-                UserAccount.currency_id == currency_id,
+            stmt = (
+                select(UserAccount)
+                .where(
+                    UserAccount.id == user_id,
+                    UserAccount.currency_id == currency_id,
+                )
+                .with_for_update()
             )
             result = await session.execute(stmt)
             account = result.scalar_one_or_none()
@@ -127,9 +147,13 @@ class AccountRepository:
             session.add(account)
             await session.commit()
 
-            stmt = select(UserAccount).where(
-                UserAccount.id == user_id,
-                UserAccount.currency_id == currency_id,
+            stmt = (
+                select(UserAccount)
+                .where(
+                    UserAccount.id == user_id,
+                    UserAccount.currency_id == currency_id,
+                )
+                .with_for_update()
             )
             result = await session.execute(stmt)
             account = result.scalar_one()
@@ -150,10 +174,12 @@ class AccountRepository:
             # 获取账户
             account = (
                 await session.execute(
-                    select(UserAccount).where(
+                    select(UserAccount)
+                    .where(
                         UserAccount.id == account_id,
                         UserAccount.currency_id == currency_id,
                     )
+                    .with_for_update()
                 )
             ).scalar_one_or_none()
 
@@ -197,7 +223,11 @@ class AccountRepository:
     async def remove_account(self, account_id: str):
         """删除账户"""
         async with self.session as session:
-            stmt = select(UserAccount).where(UserAccount.id == account_id).with_for_update()
+            stmt = (
+                select(UserAccount)
+                .where(UserAccount.id == account_id)
+                .with_for_update()
+            )
             accounts = (await session.execute(stmt)).scalars().all()
             if not accounts:
                 raise ValueError("Account not found")
@@ -241,9 +271,13 @@ class TransactionRepository:
             )
             await session.execute(stmt)
             await session.commit()
-            stmt = select(Transaction).where(
-                Transaction.id == uuid,
-                Transaction.timestamp == timestamp,
+            stmt = (
+                select(Transaction)
+                .where(
+                    Transaction.id == uuid,
+                    Transaction.timestamp == timestamp,
+                )
+                .with_for_update()
             )
             result = await session.execute(stmt)
             transaction = result.scalars().one()
@@ -267,7 +301,9 @@ class TransactionRepository:
         async with self.session as session:
             transaction = (
                 await session.execute(
-                    select(Transaction).where(Transaction.id == transaction_id)
+                    select(Transaction)
+                    .where(Transaction.id == transaction_id)
+                    .with_for_update()
                 )
             ).scalar_one_or_none()
             if not transaction:
