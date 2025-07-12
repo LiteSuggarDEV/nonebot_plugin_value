@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-value"
-version = "0.0.8.dev1"
+version = "0.0.8"
 description = "Value API for NoneBot2"
 readme = "README.md"
 requires-python = ">=3.10"
