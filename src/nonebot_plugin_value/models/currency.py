@@ -2,7 +2,7 @@ from datetime import datetime
 from uuid import uuid4
 
 from nonebot_plugin_orm import Model
-from sqlalchemy import Boolean, DateTime, Numeric, String
+from sqlalchemy import FLOAT, Boolean, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
@@ -21,7 +21,7 @@ class CurrencyMeta(Model):
     symbol: Mapped[str] = mapped_column(String(5), default="$")
 
     # 默认余额
-    default_balance: Mapped[float] = mapped_column(Numeric(16, 4), default=0.0)
+    default_balance: Mapped[float] = mapped_column(FLOAT, default=0.0)
 
     # 是否允许负余额
     allow_negative: Mapped[bool] = mapped_column(Boolean, default=False)

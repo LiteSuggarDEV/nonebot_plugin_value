@@ -9,3 +9,12 @@ wheels/
 # Virtual environments
 .venv
 uv.toml
+
+# Conda environments
+.conda
+
+# PyCharm
+.idea/
+
+# Ruff
+.ruff_cache/

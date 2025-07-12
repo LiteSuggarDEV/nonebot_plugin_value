@@ -1,6 +1,7 @@
+from collections.abc import Sequence
 from uuid import uuid4
 
-from nonebot_plugin_orm import AsyncSession
+from nonebot_plugin_orm import AsyncSession, get_session
 
 from ..models.currency import CurrencyMeta
 from ..pyd_models.currency_pyd import CurrencyData
@@ -24,7 +25,7 @@ async def update_currency(
         return await CurrencyRepository(session).update_currency(currency_data)
 
 
-async def remove_currency(currency_id: str, session: AsyncSession):
+async def remove_currency(currency_id: str) -> None:
     """删除一个货币(警告！会移除关联账户！)
 
     Args:
@@ -32,11 +33,12 @@ async def remove_currency(currency_id: str, session: AsyncSession):
         session (AsyncSession ): 异步Session.
     """
 
+    session = get_session()
     async with session:
         await CurrencyRepository(session).remove_currency(currency_id)
 
 
-async def list_currencies(session: AsyncSession):
+async def list_currencies(session: AsyncSession) -> Sequence[CurrencyMeta]:
     """获取已存在的货币
 
     Args:

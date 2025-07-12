@@ -1,6 +1,6 @@
-# Value-标准API文档
+# Value-标准 API 文档
 
-> **标准API文档**
+> **标准 API 文档**
 
 ## balance-API(`~~`代指`~.api.api_balance`)
 
@@ -67,7 +67,7 @@ async def add_balance(
 
     Args:
         user_id (str): 用户ID
-        amount (float): 数量
+        amount (float): 金额
         source (str, optional): 源描述. Defaults to "_transfer".
         currency_id (str | None, optional): 货币ID(不填使用默认). Defaults to None.
 
@@ -121,7 +121,7 @@ async def transfer_funds(
     Args:
         from_id (str): 源账户
         to_id (str): 目标账户
-        amount (float): 数量
+        amount (float): 金额
         source (str, optional): 来源说明. Defaults to "from {from_id} to {to_id}".
         currency_id (str | None, optional): 货币ID（不填则使用默认货币）. Defaults to None.
 
@@ -133,7 +133,6 @@ async def transfer_funds(
     """
     ...
 ```
-
 
 </details>
 
@@ -259,7 +258,7 @@ async def get_transaction_history(
 
     Args:
         account_id (str): 账户ID
-        limit (int, optional): 最大数量. Defaults to 10.
+        limit (int, optional): 数量. Defaults to 10.
 
     Returns:
         list[TransactionData]: 包含交易数据的列表

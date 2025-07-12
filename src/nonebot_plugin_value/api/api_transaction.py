@@ -13,7 +13,7 @@ async def get_transaction_history(
 
     Args:
         account_id (str): 账户ID
-        limit (int, optional): 最大数量. Defaults to 10.
+        limit (int, optional): 数量. Defaults to 10.
 
     Returns:
         list[TransactionData]: 包含交易数据的列表

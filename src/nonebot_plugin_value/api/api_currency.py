@@ -43,7 +43,7 @@ async def update_currency(currency_data: CurrencyData) -> CurrencyData:
         )
 
 
-async def remove_currency(currency_id: str):
+async def remove_currency(currency_id: str) -> None:
     """删除一个货币（警告！这是一个及其危险的操作！这会删除所有关联的账户！）
 
     Args:
@@ -52,8 +52,9 @@ async def remove_currency(currency_id: str):
     Returns:
         bool: 是否删除成功
     """
-    async with get_session() as session:
-        await _remove_currency(currency_id, session)
+
+    await _remove_currency(currency_id)
+
 
 async def list_currencies() -> list[CurrencyData]:
     """获取所有已存在货币
@@ -73,6 +74,7 @@ async def list_currencies() -> list[CurrencyData]:
             )
             for currency in currencies
         ]
+
 
 async def get_currency(currency_id: str) -> CurrencyData | None:
     """获取一个货币信息
@@ -95,6 +97,7 @@ async def get_currency(currency_id: str) -> CurrencyData | None:
             default_balance=currency.default_balance,
         )
 
+
 async def get_default_currency() -> CurrencyData:
     """获取默认货币的信息
 
@@ -110,6 +113,7 @@ async def get_default_currency() -> CurrencyData:
             symbol=currency.symbol,
             default_balance=currency.default_balance,
         )
+
 
 async def create_currency(currency_data: CurrencyData) -> CurrencyData:
     """创建货币

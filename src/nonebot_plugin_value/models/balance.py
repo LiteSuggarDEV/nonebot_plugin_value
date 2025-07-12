@@ -38,7 +38,7 @@ class UserAccount(Model):
     # 最后更新时间
     last_updated: MappedColumn[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow, # type: ignore
+        default=datetime.utcnow,  # type: ignore
         onupdate=datetime.utcnow,  # type: ignore
     )
 

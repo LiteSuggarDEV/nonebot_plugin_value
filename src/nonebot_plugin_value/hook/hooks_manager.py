@@ -1,5 +1,6 @@
 # 事件预处理/后处理钩子
 from collections.abc import Awaitable, Callable
+from typing import Any
 
 from nonebot import logger
 
@@ -12,7 +13,7 @@ class HooksManager:
     __hooks: dict[str, list[Callable[..., Awaitable[None]]]]
     _instance = None
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: Any, **kwargs: Any):
         """重写 __new__ 方法实现单例模式"""
         if cls._instance is None:
             cls._instance = super().__new__(cls)

@@ -1,5 +1,6 @@
 # Repository,更加底层的数据库操作接口
 import uuid
+from collections.abc import Sequence
 from datetime import datetime
 from uuid import uuid1, uuid5
 
@@ -54,6 +55,7 @@ class CurrencyRepository:
             )
             result = await session.execute(stmt)
             currency_meta = result.scalar_one()
+            session.add(currency_meta)
             return currency_meta
 
     async def getcurrency(self, currency_id: str) -> CurrencyMeta | None:
@@ -68,7 +70,7 @@ class CurrencyRepository:
                 return currency_meta
             return None
 
-    async def list_currencies(self):
+    async def list_currencies(self) -> Sequence[CurrencyMeta]:
         """列出所有货币"""
         async with self.session as session:
             result = await self.session.execute(select(CurrencyMeta))
@@ -192,7 +194,6 @@ class AccountRepository:
             currency = await session.get(CurrencyMeta, account.currency_id)
             session.add(currency)
 
-
             # 负余额检查
             if amount < 0 and not getattr(currency, "allow_negative", False):
                 raise ValueError("Insufficient funds")
@@ -206,7 +207,9 @@ class AccountRepository:
 
             return old_balance, amount
 
-    async def list_accounts(self, currency_id: str | None = None):
+    async def list_accounts(
+        self, currency_id: str | None = None
+    ) -> Sequence[UserAccount]:
         """列出所有账户"""
         async with self.session as session:
             if not currency_id:

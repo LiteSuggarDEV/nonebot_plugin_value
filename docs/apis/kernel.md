@@ -1,10 +1,11 @@
-# Value-底层API文档
+# Value-底层 API 文档
 
-> **本API为数据层API，包含操作数据库的底层逻辑**
+> **本 API 为数据层 API，包含操作数据库的底层逻辑**
 
 ## Repository(`~.repository`)
 
 ### 变量定义：
+
 ```python
 DEFAULT_NAME = "DEFAULT_CURRENCY_USD"
 DEFAULT_CURRENCY_UUID = uuid5(NAMESPACE_VALUE, "nonebot_plugin_value")
