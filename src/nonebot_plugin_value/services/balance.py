@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from nonebot import logger
 from nonebot_plugin_orm import AsyncSession, get_session
@@ -95,7 +95,7 @@ async def del_balance(
     Returns:
         ActionResult: 包含是否成功的说明
     """
-    if not amount > 0:
+    if amount <= 0:
         return ActionResult(success=False, message="金额必须大于0")
     if session is None:
         session = get_session()
@@ -178,12 +178,9 @@ async def add_balance(
     Returns:
         ActionResult: 是否成功("success")，消息说明("message")
     """
-    if arg_session is None:
-        session = get_session()
-    else:
-        session = arg_session
+    session = get_session() if arg_session is None else arg_session
     async with session:
-        if not amount > 0:
+        if amount <= 0:
             return ActionResult(
                 success=False,
                 message="金额必须大于0",
@@ -276,10 +273,7 @@ async def transfer_funds(
         TransferResult: 如果成功则包含"from_balance"（源账户现在的balance），"to_balance"（目标账户现在的balance）字段
     """
 
-    if arg_session is None:
-        session = get_session()
-    else:
-        session = arg_session
+    session = get_session() if arg_session is None else arg_session
     if amount <= 0:
         return TransferResult(
             message="金额必须大于0",
@@ -306,8 +300,6 @@ async def transfer_funds(
         to_account_id = to_account.id
 
         try:
-            if amount <= 0:
-                raise ValueError("转账值为非负数！")
             try:
                 await HooksManager().run_hooks(
                     HooksType.pre(),
@@ -340,7 +332,7 @@ async def transfer_funds(
                 amount,
                 currency_id,
             )
-            timestamp = datetime.utcnow()  # type: ignore
+            timestamp = datetime.now(timezone.utc)
             await tx_repo.create_transaction(
                 account_id=from_account_id,
                 currency_id=currency_id,

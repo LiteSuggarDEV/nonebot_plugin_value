@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from nonebot_plugin_orm import Model
@@ -27,7 +27,9 @@ class CurrencyMeta(Model):
     allow_negative: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # 创建时间
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow())  # type: ignore
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=datetime.now(timezone.utc)
+    )
 
     # 关系定义
     accounts = relationship("UserAccount", back_populates="currency")

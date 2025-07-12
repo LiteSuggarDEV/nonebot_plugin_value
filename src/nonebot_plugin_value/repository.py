@@ -1,7 +1,7 @@
 # Repository,更加底层的数据库操作接口
 import uuid
 from collections.abc import Sequence
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import uuid1, uuid5
 
 from nonebot_plugin_orm import AsyncSession
@@ -145,7 +145,7 @@ class AccountRepository:
                 id=user_id,
                 currency_id=currency_id,
                 balance=currency.default_balance,
-                last_updated=datetime.utcnow(),  # type: ignore
+                last_updated=datetime.now(timezone.utc),
             )
             session.add(account)
             await session.commit()
@@ -261,7 +261,7 @@ class TransactionRepository:
         async with self.session as session:
             """创建交易记录"""
             if timestamp is None:
-                timestamp = datetime.utcnow()  # type: ignore
+                timestamp = datetime.now(timezone.utc)
             uuid = uuid1().hex
             stmt = insert(Transaction).values(
                 id=uuid,

@@ -155,7 +155,7 @@ async def transfer_funds(
     """
     if currency_id is None:
         currency_id = (await _get_default()).id
-    if source == "":
+    if not source:
         source = f"from '{from_id}' to '{to_id}'"
     data = await _transfer(from_id, to_id, currency_id, amount, source)
     if not data.success:

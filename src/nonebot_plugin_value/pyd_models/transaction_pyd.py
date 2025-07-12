@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from pydantic import Field
 
@@ -14,4 +14,4 @@ class TransactionData(BaseData):
     source: str = Field(default="")
     balance_before: float = Field(default=0.0)
     balance_after: float = Field(default=0.0)
-    timestamp: datetime = Field(default_factory=datetime.utcnow)  # type: ignore
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

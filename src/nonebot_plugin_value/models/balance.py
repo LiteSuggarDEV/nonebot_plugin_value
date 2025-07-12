@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from nonebot_plugin_orm import Model
@@ -38,8 +38,8 @@ class UserAccount(Model):
     # 最后更新时间
     last_updated: MappedColumn[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,  # type: ignore
-        onupdate=datetime.utcnow,  # type: ignore
+        default=datetime.now(timezone.utc),
+        onupdate=datetime.now(timezone.utc),
     )
 
     currency = relationship("CurrencyMeta", back_populates="accounts")
@@ -52,13 +52,12 @@ class UserAccount(Model):
     )
 
     def __init__(self, **kwargs: Any):
-        if "id" in kwargs and "currency_id" in kwargs:
-            if "uni_id" not in kwargs:
-                namespace = NAMESPACE_VALUE
-                uni_id_val = uuid.uuid5(namespace, kwargs["id"] + kwargs["currency_id"])
-                kwargs["id"] = uni_id_val
-        else:
+        if "id" not in kwargs or "currency_id" not in kwargs:
             raise ValueError("id and currency_id must be provided")
+        if "uni_id" not in kwargs:
+            namespace = NAMESPACE_VALUE
+            uni_id_val = uuid.uuid5(namespace, kwargs["id"] + kwargs["currency_id"])
+            kwargs["id"] = uni_id_val
         super().__init__(**kwargs)
 
 
@@ -100,7 +99,7 @@ class Transaction(Model):
     # 交易时间
     timestamp: MappedColumn[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,  # type: ignore
+        default=datetime.now(timezone.utc),
     )
 
     # 关系定义
