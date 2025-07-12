@@ -1,8 +1,8 @@
-# Value-高级API文档
+# Value-高级 API 文档
 
-> **本API为服务层API，包含有关数据库操作的核心逻辑**
+> **本 API 为服务层 API，包含有关数据库操作的核心逻辑**
 
-## currency-API(`~~`代指`~.db_api.balance`)
+## currency-API(`~~`代指`~.services.balance`)
 
 <details>
 
@@ -103,12 +103,11 @@ async def get_default_currency(session: AsyncSession) -> CurrencyMeta:
     ...
 ```
 
-
 </details>
 
 ---
 
-## balance-API(`~~`代指`~.db_api.balance`)
+## balance-API(`~~`代指`~.services.balance`)
 
 <details>
 
@@ -175,18 +174,18 @@ async def del_balance(
     amount: float,
     source: str = "",
     session: AsyncSession | None = None,
-) -> dict[str, Any]:
+) -> ActionResult:
     """异步减少余额
 
     Args:
         user_id (str): 用户ID
         currency_id (str): 货币ID
-        amount (float): 数量
+        amount (float): 金额
         source (str, optional): 来源说明. Defaults to "".
         session (AsyncSession | None, optional): 数据库异步会话. Defaults to None.
 
     Returns:
-        dict[str, Any]: 包含是否成功的说明
+        ActionResult: 包含是否成功的说明
     """
     ...
 ```
@@ -200,18 +199,18 @@ async def add_balance(
     amount: float,
     source: str = "",
     session: AsyncSession | None = None,
-) -> dict[str, Any]:
+) -> ActionResult:
     """异步增加余额
 
     Args:
         user_id (str): 用户ID
         currency_id (str): 货币ID
-        amount (float): 数量
+        amount (float): 金额
         source (str, optional): 来源说明. Defaults to "".
         session (AsyncSession | None, optional): 数据库异步会话. Defaults to None.
 
     Returns:
-        dict[str, Any]: 是否成功("success")，消息说明("message")
+        ActionResult: 是否成功("success")，消息说明("message")
     """
     ...
 ```
@@ -226,29 +225,28 @@ async def transfer_funds(
     amount: float,
     source: str = "transfer",
     session: AsyncSession | None = None,
-) -> dict[str, Any]:
+) -> TransferResult:
     """异步转账
 
     Args:
         fromuser_id (str): 源用户ID
         touser_id (str): 目标用户ID
         currency_id (str): 货币ID
-        amount (float): 数量
+        amount (float): 金额
         source (str, optional): 源说明. Defaults to "transfer".
         session (AsyncSession | None, optional): 数据库异步Session. Defaults to None.
 
     Returns:
-        dict[str, Any]: 如果成功则包含"from_balance"（源账户现在的balance），"to_balance"（目标账户现在的balance），否则包含"message"（错误消息）字段
+        TransferResult: 如果成功则"from_balance"（源账户现在的balance），"to_balance"（目标账户现在的balance）字段不为None
     """
     ...
 ```
-
 
 </details>
 
 ---
 
-## transaction-API(`~~`代指`~.db_api.transaction`)
+## transaction-API(`~~`代指`~.services.transaction`)
 
 <details>
 

@@ -68,4 +68,4 @@ plugins = ["nonebot_plugin_value"]
 
 1. 升级 nonebot_plugin_value 到最新版本
 
-2. 运行迁移脚本(（如果Bot根目录下**没有**迁移脚本目录，请使用`nb orm init`来初始化。）在bot根目录使用`nb orm revison`再`nb orm upgrade`进行迁移)
+2. 运行迁移脚本(（如果 Bot 根目录下**没有**迁移脚本目录，请使用`nb orm init`来初始化。）在 bot 根目录使用`nb orm revison`再`nb orm upgrade`进行迁移)

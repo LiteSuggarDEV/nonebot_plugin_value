@@ -1,12 +1,12 @@
 from nonebot_plugin_orm import get_session
 
-from ..db_api.balance import add_balance as _a_balance
-from ..db_api.balance import del_account as _del_account
-from ..db_api.balance import del_balance as _d_balance
-from ..db_api.balance import get_or_create_account as _go_account
-from ..db_api.balance import list_accounts as _list_accounts
-from ..db_api.balance import transfer_funds as _transfer
 from ..pyd_models.balance_pyd import UserAccountData
+from ..services.balance import add_balance as _a_balance
+from ..services.balance import del_account as _del_account
+from ..services.balance import del_balance as _d_balance
+from ..services.balance import get_or_create_account as _go_account
+from ..services.balance import list_accounts as _list_accounts
+from ..services.balance import transfer_funds as _transfer
 from .api_currency import get_default_currency as _get_default
 
 
@@ -84,7 +84,7 @@ async def add_balance(
 
     Args:
         user_id (str): 用户ID
-        amount (float): 数量
+        amount (float): 金额
         source (str, optional): 源描述. Defaults to "_transfer".
         currency_id (str | None, optional): 货币ID(不填使用默认). Defaults to None.
 
@@ -98,8 +98,8 @@ async def add_balance(
     if currency_id is None:
         currency_id = (await _get_default()).id
     data = await _a_balance(user_id, currency_id, amount, source)
-    if not data.get("success", False):
-        raise RuntimeError(data.get("message", ""))
+    if not data.success:
+        raise RuntimeError(data.message)
     return await get_or_create_account(user_id, currency_id)
 
 
@@ -126,8 +126,8 @@ async def del_balance(
     if currency_id is None:
         currency_id = (await _get_default()).id
     data = await _d_balance(user_id, currency_id, amount, source)
-    if not data.get("success", False):
-        raise RuntimeError(data.get("message", ""))
+    if not data.success:
+        raise RuntimeError(data.message)
     return await get_or_create_account(user_id, currency_id)
 
 
@@ -143,7 +143,7 @@ async def transfer_funds(
     Args:
         from_id (str): 源账户
         to_id (str): 目标账户
-        amount (float): 数量
+        amount (float): 金额
         source (str, optional): 来源说明. Defaults to "from {from_id} to {to_id}".
         currency_id (str | None, optional): 货币ID（不填则使用默认货币）. Defaults to None.
 
@@ -155,9 +155,9 @@ async def transfer_funds(
     """
     if currency_id is None:
         currency_id = (await _get_default()).id
-    if source == "":
+    if not source:
         source = f"from '{from_id}' to '{to_id}'"
     data = await _transfer(from_id, to_id, currency_id, amount, source)
-    if not data.get("success", False):
-        raise RuntimeError(data.get("message", ""))
+    if not data.success:
+        raise RuntimeError(data.message)
     return await get_or_create_account(to_id, currency_id)

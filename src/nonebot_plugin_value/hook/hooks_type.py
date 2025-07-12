@@ -15,5 +15,5 @@ class HooksType:
         return hook_name in [cls.__pre, cls.__post]
 
     @classmethod
-    def methods(cls)->list[str]:
+    def methods(cls) -> list[str]:
         return [cls.__pre, cls.__post]

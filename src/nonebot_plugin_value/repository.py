@@ -1,6 +1,6 @@
 # Repository,更加底层的数据库操作接口
-import uuid
-from datetime import datetime
+from collections.abc import Sequence
+from datetime import datetime, timezone
 from uuid import uuid1, uuid5
 
 from nonebot_plugin_orm import AsyncSession
@@ -9,9 +9,10 @@ from sqlalchemy import insert, select, update
 from .models.balance import Transaction, UserAccount
 from .models.currency import CurrencyMeta
 from .pyd_models.currency_pyd import CurrencyData
+from .uuid_lib import NAMESPACE_VALUE
 
 DEFAULT_NAME = "DEFAULT_CURRENCY_USD"
-DEFAULT_CURRENCY_UUID = uuid5(uuid.NAMESPACE_X500, DEFAULT_NAME)
+DEFAULT_CURRENCY_UUID = uuid5(NAMESPACE_VALUE, DEFAULT_NAME)
 
 
 class CurrencyRepository:
@@ -53,6 +54,7 @@ class CurrencyRepository:
             )
             result = await session.execute(stmt)
             currency_meta = result.scalar_one()
+            session.add(currency_meta)
             return currency_meta
 
     async def getcurrency(self, currency_id: str) -> CurrencyMeta | None:
@@ -67,7 +69,7 @@ class CurrencyRepository:
                 return currency_meta
             return None
 
-    async def list_currencies(self):
+    async def list_currencies(self) -> Sequence[CurrencyMeta]:
         """列出所有货币"""
         async with self.session as session:
             result = await self.session.execute(select(CurrencyMeta))
@@ -138,11 +140,11 @@ class AccountRepository:
 
             session.add(currency)
             account = UserAccount(
-                uni_id=uuid5(uuid.NAMESPACE_X500, f"{user_id}{currency_id}").hex,
+                uni_id=uuid5(NAMESPACE_VALUE, f"{user_id}{currency_id}").hex,
                 id=user_id,
                 currency_id=currency_id,
                 balance=currency.default_balance,
-                last_updated=datetime.utcnow(),
+                last_updated=datetime.now(timezone.utc),
             )
             session.add(account)
             await session.commit()
@@ -191,7 +193,6 @@ class AccountRepository:
             currency = await session.get(CurrencyMeta, account.currency_id)
             session.add(currency)
 
-
             # 负余额检查
             if amount < 0 and not getattr(currency, "allow_negative", False):
                 raise ValueError("Insufficient funds")
@@ -205,7 +206,9 @@ class AccountRepository:
 
             return old_balance, amount
 
-    async def list_accounts(self, currency_id: str | None = None):
+    async def list_accounts(
+        self, currency_id: str | None = None
+    ) -> Sequence[UserAccount]:
         """列出所有账户"""
         async with self.session as session:
             if not currency_id:
@@ -257,7 +260,7 @@ class TransactionRepository:
         async with self.session as session:
             """创建交易记录"""
             if timestamp is None:
-                timestamp = datetime.utcnow()
+                timestamp = datetime.now(timezone.utc)
             uuid = uuid1().hex
             stmt = insert(Transaction).values(
                 id=uuid,
