@@ -1,5 +1,4 @@
 # Repository,更加底层的数据库操作接口
-import uuid
 from collections.abc import Sequence
 from datetime import datetime, timezone
 from uuid import uuid1, uuid5
@@ -141,7 +140,7 @@ class AccountRepository:
 
             session.add(currency)
             account = UserAccount(
-                uni_id=uuid5(uuid.NAMESPACE_X500, f"{user_id}{currency_id}").hex,
+                uni_id=uuid5(NAMESPACE_VALUE, f"{user_id}{currency_id}").hex,
                 id=user_id,
                 currency_id=currency_id,
                 balance=currency.default_balance,
