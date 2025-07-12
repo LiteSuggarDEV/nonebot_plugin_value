@@ -1,8 +1,8 @@
 from nonebot_plugin_orm import get_session
 
-from ..db_api.transaction import get_transaction_history as _transaction_history
-from ..db_api.transaction import remove_transaction as _remove_transaction
 from ..pyd_models.transaction_pyd import TransactionData
+from ..services.transaction import get_transaction_history as _transaction_history
+from ..services.transaction import remove_transaction as _remove_transaction
 
 
 async def get_transaction_history(

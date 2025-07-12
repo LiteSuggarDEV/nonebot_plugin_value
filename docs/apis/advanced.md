@@ -2,7 +2,7 @@
 
 > **本API为服务层API，包含有关数据库操作的核心逻辑**
 
-## currency-API(`~~`代指`~.db_api.balance`)
+## currency-API(`~~`代指`~.services.balance`)
 
 <details>
 
@@ -108,7 +108,7 @@ async def get_default_currency(session: AsyncSession) -> CurrencyMeta:
 
 ---
 
-## balance-API(`~~`代指`~.db_api.balance`)
+## balance-API(`~~`代指`~.services.balance`)
 
 <details>
 
@@ -248,7 +248,7 @@ async def transfer_funds(
 
 ---
 
-## transaction-API(`~~`代指`~.db_api.transaction`)
+## transaction-API(`~~`代指`~.services.transaction`)
 
 <details>
 

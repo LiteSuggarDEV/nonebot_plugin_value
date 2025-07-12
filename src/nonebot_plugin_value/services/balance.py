@@ -7,12 +7,12 @@ from nonebot_plugin_orm import AsyncSession, get_session
 from nonebot_plugin_value.models.balance import UserAccount
 
 from ..action_type import Method
-from ..db_api.currency import DEFAULT_CURRENCY_UUID
 from ..hook.context import TransactionComplete, TransactionContext
 from ..hook.exception import CancelAction
 from ..hook.hooks_manager import HooksManager
 from ..hook.hooks_type import HooksType
 from ..repository import AccountRepository, TransactionRepository
+from ..services.currency import DEFAULT_CURRENCY_UUID
 
 
 async def del_account(
@@ -106,10 +106,8 @@ async def del_balance(
         try:
             account = await account_repo.get_or_create_account(user_id, currency_id)
             session.add(account)
-            balance_before = float(account.balance)
+            balance_before = account.balance
             account_id = account.id
-            if balance_before is None:
-                return {"success": False, "message": "账户不存在"}
             balance_after = balance_before - amount
             try:
                 await HooksManager().run_hooks(
@@ -189,9 +187,7 @@ async def add_balance(
             account = await account_repo.get_or_create_account(user_id, currency_id)
             session.add(account)
             account_id = account.id
-            balance_before = float(account.balance)
-            if balance_before is None:
-                raise ValueError("账户不存在")
+            balance_before = account.balance
             try:
                 await HooksManager().run_hooks(
                     HooksType.pre(),
@@ -327,7 +323,7 @@ async def transfer_funds(
                 amount,
                 currency_id,
             )
-            timestamp = datetime.utcnow()
+            timestamp = datetime.utcnow() # type: ignore
             await tx_repo.create_transaction(
                 account_id=from_account_id,
                 currency_id=currency_id,

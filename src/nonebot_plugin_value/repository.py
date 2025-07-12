@@ -9,9 +9,10 @@ from sqlalchemy import insert, select, update
 from .models.balance import Transaction, UserAccount
 from .models.currency import CurrencyMeta
 from .pyd_models.currency_pyd import CurrencyData
+from .uuid_lib import NAMESPACE_VALUE
 
 DEFAULT_NAME = "DEFAULT_CURRENCY_USD"
-DEFAULT_CURRENCY_UUID = uuid5(uuid.NAMESPACE_X500, DEFAULT_NAME)
+DEFAULT_CURRENCY_UUID = uuid5(NAMESPACE_VALUE, DEFAULT_NAME)
 
 
 class CurrencyRepository:
@@ -142,7 +143,7 @@ class AccountRepository:
                 id=user_id,
                 currency_id=currency_id,
                 balance=currency.default_balance,
-                last_updated=datetime.utcnow(),
+                last_updated=datetime.utcnow(),  # type: ignore
             )
             session.add(account)
             await session.commit()
@@ -257,7 +258,7 @@ class TransactionRepository:
         async with self.session as session:
             """创建交易记录"""
             if timestamp is None:
-                timestamp = datetime.utcnow()
+                timestamp = datetime.utcnow()  # type: ignore
             uuid = uuid1().hex
             stmt = insert(Transaction).values(
                 id=uuid,

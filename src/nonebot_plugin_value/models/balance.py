@@ -1,16 +1,19 @@
 import uuid
 from datetime import datetime
+from typing import Any
 
 from nonebot_plugin_orm import Model
 from sqlalchemy import (
+    FLOAT,
     DateTime,
     ForeignKey,
     Index,
-    Numeric,
     String,
     UniqueConstraint,
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import MappedColumn, mapped_column, relationship
+
+from ..uuid_lib import NAMESPACE_VALUE
 
 
 class UserAccount(Model):
@@ -19,22 +22,24 @@ class UserAccount(Model):
     __tablename__ = "user_accounts"
 
     # 每种货币账户的唯一ID(id currency_id-UUID.hex)
-    uni_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    uni_id: MappedColumn[str] = mapped_column(String(64), primary_key=True)
 
     # 用户ID
-    id: Mapped[str] = mapped_column(String(64))
+    id: MappedColumn[str] = mapped_column(String(64))
 
     # 货币外键
-    currency_id: Mapped[str] = mapped_column(
+    currency_id: MappedColumn[str] = mapped_column(
         String(64), ForeignKey("currency_meta.id", ondelete="CASCADE"), nullable=False
     )
 
     # 账户余额
-    balance: Mapped[float] = mapped_column(Numeric(16, 4), default=0.0)
+    balance: MappedColumn[float] = mapped_column(FLOAT, default=0.0)
 
     # 最后更新时间
-    last_updated: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+    last_updated: MappedColumn[datetime] = mapped_column(
+        DateTime,
+        default=datetime.utcnow, # type: ignore
+        onupdate=datetime.utcnow,  # type: ignore
     )
 
     currency = relationship("CurrencyMeta", back_populates="accounts")
@@ -46,15 +51,16 @@ class UserAccount(Model):
         Index("idx_usercurrency", "id", "currency_id"),
     )
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any):
         if "id" in kwargs and "currency_id" in kwargs:
             if "uni_id" not in kwargs:
-                namespace = uuid.NAMESPACE_X500
+                namespace = NAMESPACE_VALUE
                 uni_id_val = uuid.uuid5(namespace, kwargs["id"] + kwargs["currency_id"])
                 kwargs["id"] = uni_id_val
         else:
             raise ValueError("id and currency_id must be provided")
         super().__init__(**kwargs)
+
 
 class Transaction(Model):
     """交易记录表"""
@@ -62,35 +68,40 @@ class Transaction(Model):
     __tablename__ = "transactions"
 
     # UUID作为主键
-    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    id: MappedColumn[str] = mapped_column(String(64), primary_key=True)
 
     # 账户外键
-    account_id: Mapped[str] = mapped_column(
+    account_id: MappedColumn[str] = mapped_column(
         String, ForeignKey("user_accounts.id", ondelete="RESTRICT"), nullable=False
     )
 
     # 货币外键
-    currency_id: Mapped[str] = mapped_column(
+    currency_id: MappedColumn[str] = mapped_column(
         String(32), ForeignKey("currency_meta.id", ondelete="RESTRICT"), nullable=False
     )
 
     # 交易金额
-    amount: Mapped[float] = mapped_column(Numeric(16, 4), nullable=False)
+    amount: MappedColumn[float] = mapped_column(FLOAT, nullable=False)
 
     # 交易类型
-    action: Mapped[str] = mapped_column(
+    action: MappedColumn[str] = mapped_column(
         String(20), nullable=False
     )  # DEPOSIT, WITHDRAW, TRANSFER_IN, TRANSFER_OUT
 
     # 交易来源
-    source: Mapped[str] = mapped_column(String(64), nullable=False)  # 发起交易的插件
+    source: MappedColumn[str] = mapped_column(
+        String(64), nullable=False
+    )  # 发起交易的插件
 
     # 交易前后余额
-    balance_before: Mapped[float] = mapped_column(Numeric(16, 4))
-    balance_after: Mapped[float] = mapped_column(Numeric(16, 4))
+    balance_before: MappedColumn[float] = mapped_column(FLOAT)
+    balance_after: MappedColumn[float] = mapped_column(FLOAT)
 
     # 交易时间
-    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    timestamp: MappedColumn[datetime] = mapped_column(
+        DateTime,
+        default=datetime.utcnow,  # type: ignore
+    )
 
     # 关系定义
     account = relationship("UserAccount", back_populates="transactions")

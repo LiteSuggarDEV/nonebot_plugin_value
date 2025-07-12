@@ -42,4 +42,4 @@ ignore = [
 ]
 
 [tool.pyright]
-typeCheckingMode = "standard"
+typeCheckingMode = "strict"

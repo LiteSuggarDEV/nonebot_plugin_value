@@ -27,7 +27,7 @@ class CurrencyMeta(Model):
     allow_negative: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # 创建时间
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow())  # type: ignore
 
     # 关系定义
     accounts = relationship("UserAccount", back_populates="currency")

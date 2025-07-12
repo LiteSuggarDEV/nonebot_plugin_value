@@ -7,7 +7,7 @@
 ### 变量定义：
 ```python
 DEFAULT_NAME = "DEFAULT_CURRENCY_USD"
-DEFAULT_CURRENCY_UUID = uuid5(uuid.NAMESPACE_X500, "nonebot_plugin_value")
+DEFAULT_CURRENCY_UUID = uuid5(NAMESPACE_VALUE, "nonebot_plugin_value")
 ```
 
 ---
