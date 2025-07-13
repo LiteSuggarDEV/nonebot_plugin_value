@@ -15,7 +15,7 @@ class CurrencyMeta(Model):
     id: Mapped[str] = mapped_column(String(255), primary_key=True, default=uuid4)
 
     # 货币显示名称
-    display_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    display_name: Mapped[str] = mapped_column(String(255), nullable=False)
 
     # 货币符号
     symbol: Mapped[str] = mapped_column(String(5), default="$")
