@@ -27,11 +27,7 @@ class CurrencyRepository:
             stmt = insert(CurrencyMeta).values(**dict(currency_data))
             await session.execute(stmt)
             await session.commit()
-            stmt = (
-                select(CurrencyMeta)
-                .where(CurrencyMeta.id == currency_data.id)
-                .with_for_update()
-            )
+            stmt = select(CurrencyMeta).where(CurrencyMeta.id == currency_data.id)
             result = await session.execute(stmt)
             currency_meta = result.scalar_one()
             session.add(currency_meta)
@@ -112,11 +108,7 @@ class AccountRepository:
         async with self.session as session:
             """获取或创建用户账户"""
             # 获取货币配置
-            stmt = (
-                select(CurrencyMeta)
-                .where(CurrencyMeta.id == currency_id)
-                .with_for_update()
-            )
+            stmt = select(CurrencyMeta).where(CurrencyMeta.id == currency_id)
             result = await session.execute(stmt)
             currency = result.scalar_one_or_none()
             if currency is None:
@@ -149,13 +141,9 @@ class AccountRepository:
             session.add(account)
             await session.commit()
 
-            stmt = (
-                select(UserAccount)
-                .where(
-                    UserAccount.id == user_id,
-                    UserAccount.currency_id == currency_id,
-                )
-                .with_for_update()
+            stmt = select(UserAccount).where(
+                UserAccount.id == user_id,
+                UserAccount.currency_id == currency_id,
             )
             result = await session.execute(stmt)
             account = result.scalar_one()
@@ -295,7 +283,6 @@ class TransactionRepository:
             .where(Transaction.account_id == account_id)
             .order_by(Transaction.timestamp.desc())
             .limit(limit)
-            .with_for_update()
         )
         data = result.scalars().all()
         self.session.add_all(data)

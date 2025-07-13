@@ -12,7 +12,7 @@ class CurrencyMeta(Model):
     __tablename__ = "currency_meta"
 
     # 货币ID作为主键
-    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=uuid4)
+    id: Mapped[str] = mapped_column(String(255), primary_key=True, default=uuid4)
 
     # 货币显示名称
     display_name: Mapped[str] = mapped_column(String(64), nullable=False)
