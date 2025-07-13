@@ -22,14 +22,14 @@ class UserAccount(Model):
     __tablename__ = "user_accounts"
 
     # 每种货币账户的唯一ID(id currency_id-UUID.hex)
-    uni_id: MappedColumn[str] = mapped_column(String(64), primary_key=True)
+    uni_id: MappedColumn[str] = mapped_column(String(255), primary_key=True)
 
     # 用户ID
-    id: MappedColumn[str] = mapped_column(String(64))
+    id: MappedColumn[str] = mapped_column(String(255))
 
     # 货币外键
     currency_id: MappedColumn[str] = mapped_column(
-        String(64), ForeignKey("currency_meta.id", ondelete="CASCADE"), nullable=False
+        String(255), ForeignKey("currency_meta.id", ondelete="CASCADE"), nullable=False
     )
 
     # 账户余额
@@ -67,16 +67,16 @@ class Transaction(Model):
     __tablename__ = "transactions"
 
     # UUID作为主键
-    id: MappedColumn[str] = mapped_column(String(64), primary_key=True)
+    id: MappedColumn[str] = mapped_column(String(255), primary_key=True)
 
     # 账户外键
     account_id: MappedColumn[str] = mapped_column(
-        String, ForeignKey("user_accounts.id", ondelete="RESTRICT"), nullable=False
+        String(255), ForeignKey("user_accounts.id", ondelete="RESTRICT"), nullable=False
     )
 
     # 货币外键
     currency_id: MappedColumn[str] = mapped_column(
-        String(32), ForeignKey("currency_meta.id", ondelete="RESTRICT"), nullable=False
+        String(255), ForeignKey("currency_meta.id", ondelete="RESTRICT"), nullable=False
     )
 
     # 交易金额
@@ -89,7 +89,7 @@ class Transaction(Model):
 
     # 交易来源
     source: MappedColumn[str] = mapped_column(
-        String(64), nullable=False
+        String(255), nullable=False
     )  # 发起交易的插件
 
     # 交易前后余额
