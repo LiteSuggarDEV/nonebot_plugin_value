@@ -9,7 +9,7 @@ from sqlalchemy import insert, select, update
 from .models.balance import Transaction, UserAccount
 from .models.currency import CurrencyMeta
 from .pyd_models.currency_pyd import CurrencyData
-from .uuid_lib import NAMESPACE_VALUE
+from .uuid_lib import NAMESPACE_VALUE, get_uni_id
 
 DEFAULT_NAME = "DEFAULT_CURRENCY_USD"
 DEFAULT_CURRENCY_UUID = uuid5(NAMESPACE_VALUE, DEFAULT_NAME)
@@ -53,7 +53,7 @@ class CurrencyRepository:
             session.add(currency_meta)
             return currency_meta
 
-    async def getcurrency(self, currency_id: str) -> CurrencyMeta | None:
+    async def get_currency(self, currency_id: str) -> CurrencyMeta | None:
         """获取货币信息"""
         async with self.session as session:
             result = await self.session.execute(
@@ -117,10 +117,7 @@ class AccountRepository:
             # 检查账户是否存在
             stmt = (
                 select(UserAccount)
-                .where(
-                    UserAccount.id == user_id,
-                    UserAccount.currency_id == currency_id,
-                )
+                .where(UserAccount.uni_id == get_uni_id(user_id, currency_id))
                 .with_for_update()
             )
             result = await session.execute(stmt)
@@ -132,7 +129,7 @@ class AccountRepository:
 
             session.add(currency)
             account = UserAccount(
-                uni_id=uuid5(NAMESPACE_VALUE, f"{user_id}{currency_id}").hex,
+                uni_id=get_uni_id(user_id, currency_id),
                 id=user_id,
                 currency_id=currency_id,
                 balance=currency.default_balance,
@@ -142,17 +139,17 @@ class AccountRepository:
             await session.commit()
 
             stmt = select(UserAccount).where(
-                UserAccount.id == user_id,
-                UserAccount.currency_id == currency_id,
+                UserAccount.uni_id == get_uni_id(user_id, currency_id)
             )
             result = await session.execute(stmt)
             account = result.scalar_one()
             session.add(account)
             return account
 
-    async def get_balance(self, account_id: str) -> float | None:
+    async def get_balance(self, account_id: str, currency_id: str) -> float | None:
         """获取账户余额"""
-        account = await self.session.get(UserAccount, account_id)
+        uni_id = get_uni_id(account_id, currency_id)
+        account = await self.session.get(UserAccount, uni_id)
         return account.balance if account else None
 
     async def update_balance(
@@ -165,10 +162,7 @@ class AccountRepository:
             account = (
                 await session.execute(
                     select(UserAccount)
-                    .where(
-                        UserAccount.id == account_id,
-                        UserAccount.currency_id == currency_id,
-                    )
+                    .where(UserAccount.uni_id == get_uni_id(account_id, currency_id))
                     .with_for_update()
                 )
             ).scalar_one_or_none()
@@ -212,14 +206,21 @@ class AccountRepository:
                 session.add_all(data)
             return data
 
-    async def remove_account(self, account_id: str):
+    async def remove_account(self, account_id: str, currency_id: str | None = None):
         """删除账户"""
         async with self.session as session:
-            stmt = (
-                select(UserAccount)
-                .where(UserAccount.id == account_id)
-                .with_for_update()
-            )
+            if not currency_id:
+                stmt = (
+                    select(UserAccount)
+                    .where(UserAccount.id == account_id)
+                    .with_for_update()
+                )
+            else:
+                stmt = (
+                    select(UserAccount)
+                    .where(UserAccount.uni_id == get_uni_id(account_id, currency_id))
+                    .with_for_update()
+                )
             accounts = (await session.execute(stmt)).scalars().all()
             if not accounts:
                 raise ValueError("Account not found")
@@ -250,7 +251,7 @@ class TransactionRepository:
             if timestamp is None:
                 timestamp = datetime.now(timezone.utc)
             uuid = uuid1().hex
-            stmt = insert(Transaction).values(
+            transaction_data = Transaction(
                 id=uuid,
                 account_id=account_id,
                 currency_id=currency_id,
@@ -261,18 +262,18 @@ class TransactionRepository:
                 balance_after=balance_after,
                 timestamp=timestamp,
             )
-            await session.execute(stmt)
+            session.add(transaction_data)
             await session.commit()
             stmt = (
                 select(Transaction)
                 .where(
                     Transaction.id == uuid,
-                    Transaction.timestamp == timestamp,
                 )
                 .with_for_update()
             )
             result = await session.execute(stmt)
-            transaction = result.scalars().one()
+            transaction = result.scalar_one_or_none()
+            assert transaction, f"无法读取到交易记录[... WHERE id = {uuid} ...]!"
             session.add(transaction)
             return transaction
 

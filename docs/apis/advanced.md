@@ -53,10 +53,10 @@ async def remove_currency(currency_id: str, session: AsyncSession):
     ...
 ```
 
-### `~~.getcurrency`
+### `~~.get_currency`
 
 ```python
-async def getcurrency(currency_id: str, session: AsyncSession) -> CurrencyMeta | None:
+async def get_currency(currency_id: str, session: AsyncSession) -> CurrencyMeta | None:
     """获取一个货币的元信息
 
     Args:

@@ -46,7 +46,7 @@ async def del_account(user_id: str, currency_id: str | None = None) -> bool:
     """
     if currency_id is None:
         currency_id = (await _get_default()).id
-    return await _del_account(user_id)
+    return await _del_account(user_id, currency_id=currency_id)
 
 
 async def get_or_create_account(

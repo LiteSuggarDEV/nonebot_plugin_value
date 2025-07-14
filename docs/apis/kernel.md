@@ -31,7 +31,7 @@ class CurrencyRepository:
     async def update_currency(self, currency_data: CurrencyData) -> CurrencyMeta:
         """更新货币信息"""
 
-    async def getcurrency(self, currency_id: str) -> CurrencyMeta | None:
+    async def get_currency(self, currency_id: str) -> CurrencyMeta | None:
         """获取货币信息"""
         ...
 

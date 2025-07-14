@@ -52,7 +52,7 @@ async def list_currencies(session: AsyncSession) -> Sequence[CurrencyMeta]:
         return data
 
 
-async def getcurrency(currency_id: str, session: AsyncSession) -> CurrencyMeta | None:
+async def get_currency(currency_id: str, session: AsyncSession) -> CurrencyMeta | None:
     """获取一个货币的元信息
 
     Args:
@@ -63,7 +63,7 @@ async def getcurrency(currency_id: str, session: AsyncSession) -> CurrencyMeta |
         CurrencyMeta | None: 货币元数据（不存在为None）
     """
     async with session:
-        metadata = await CurrencyRepository(session).getcurrency(currency_id)
+        metadata = await CurrencyRepository(session).get_currency(currency_id)
         return metadata
 
 
@@ -85,7 +85,7 @@ async def get_or_create_currency(
             while True:
                 currency_data.id = uuid4().hex
                 if (
-                    await getcurrency(
+                    await get_currency(
                         uuid4().hex,
                         session,
                     )
@@ -93,7 +93,7 @@ async def get_or_create_currency(
                 ):
                     break
         if (
-            metadata := await getcurrency(
+            metadata := await get_currency(
                 currency_data.id,
                 session,
             )
