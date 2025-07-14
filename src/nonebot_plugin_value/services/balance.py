@@ -16,7 +16,10 @@ from ..services.currency import DEFAULT_CURRENCY_UUID
 
 
 async def del_account(
-    account_id: str, session: AsyncSession | None = None, fail_then_throw: bool = False
+    account_id: str,
+    session: AsyncSession | None = None,
+    fail_then_throw: bool = False,
+    currency_id: str | None = None,
 ) -> bool:
     """删除账户
 
@@ -28,7 +31,7 @@ async def del_account(
         session = get_session()
     async with session:
         try:
-            await AccountRepository(session).remove_account(account_id)
+            await AccountRepository(session).remove_account(account_id, currency_id)
             return True
         except Exception:
             await session.rollback()

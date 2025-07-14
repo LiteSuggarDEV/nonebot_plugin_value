@@ -1,9 +1,9 @@
 from nonebot_plugin_orm import get_session
 
 from ..pyd_models.currency_pyd import CurrencyData
+from ..services.currency import get_currency as _g_currency
 from ..services.currency import get_default_currency as _default_currency
 from ..services.currency import get_or_create_currency as _create_currency
-from ..services.currency import getcurrency as _g_currency
 from ..services.currency import list_currencies as _currencies
 from ..services.currency import remove_currency as _remove_currency
 from ..services.currency import update_currency as _update_currency
