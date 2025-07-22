@@ -15,8 +15,8 @@ from .services import balance, transaction
 from .services import currency as currency_api
 
 __plugin_meta__ = PluginMetadata(
-    name="Value",
-    description="通用经济API插件",
+    name="Value API",
+    description="Nonebot通用经济API插件",
     usage="请查看API文档。",
     type="library",
     homepage="https://github.com/JohnRichard4096/nonebot_plugin_value",

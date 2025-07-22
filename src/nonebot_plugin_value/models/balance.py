@@ -5,6 +5,7 @@ from typing import Any
 from nonebot_plugin_orm import Model
 from sqlalchemy import (
     FLOAT,
+    Boolean,
     DateTime,
     ForeignKey,
     Index,
@@ -26,6 +27,9 @@ class UserAccount(Model):
 
     # 用户ID
     id: MappedColumn[str] = mapped_column(String(255))
+
+    # 账户是否冻结
+    forzen: MappedColumn[bool] = mapped_column(Boolean, default=False)
 
     # 货币外键
     currency_id: MappedColumn[str] = mapped_column(

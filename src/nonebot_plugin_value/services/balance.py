@@ -78,6 +78,48 @@ async def get_or_create_account(
             user_id, currency_id
         )
 
+async def batch_del_balance(
+    updates: list[tuple[str, float]],
+    currency_id: str,
+    source: str = "batch_update",
+    session: AsyncSession | None = None,
+    fail_then_rollback: bool = True,
+    return_all_on_fail: bool = False,
+) -> list[ActionResult]:
+    """批量减少账户余额
+
+    Args:
+        updates (list[tuple[str, float]]): 元组列表，包含用户id和金额
+        currency_id (str): 货币ID
+        source (str, optional): 源. Defaults to "batch_update".
+        session (AsyncSession | None, optional): 异步Session. Defaults to None.
+        fail_then_rollback (bool, optional): 失败时是否回滚. Defaults to True.
+        return_all_on_fail (bool, optional): 批量操作失败时是否仍然返回所有结果. Defaults to False.
+
+    Returns:
+        list[ActionResult]: 操作结果列表
+    """
+    if session is None:
+        session = get_session()
+    result_list: list[ActionResult] = []
+    async with session:
+        try:
+            for uid, amount in updates:
+                data: ActionResult = await del_balance(
+                    uid, currency_id, amount, source, session
+                )
+                session.add(data)
+                result_list.append(data)
+
+            if not all(r.success for r in result_list):
+                if fail_then_rollback:
+                    await session.rollback()
+                return [] if not return_all_on_fail else result_list
+            await session.commit()
+            return result_list
+        except Exception:
+            await session.rollback()
+            raise
 
 async def del_balance(
     user_id: str,
@@ -159,6 +201,48 @@ async def del_balance(
         except Exception:
             if has_commit:
                 await session.rollback()
+            raise
+
+
+async def batch_add_balance(
+    updates: list[tuple[str, float]],
+    currency_id: str,
+    source: str = "batch_update",
+    session: AsyncSession | None = None,
+    fail_then_rollback: bool = True,
+    return_all_on_fail: bool = False,
+) -> list[ActionResult]:
+    """批量添加余额
+
+    Args:
+        updates (list[tuple[str, float]]): 元组列表 [(用户ID, 金额变化)]
+        source (str, optional): 来源. Defaults to "batch_update".
+        session (AsyncSession | None, optional): 会话. Defaults to None.
+        fail_then_rollback (bool, optional): 失败时是否回滚. Defaults to True.
+        return_all_on_fail (bool, optional): 返回所有结果即使失败时. Defaults to False.
+
+    Returns:
+        list[ActionResult]: 返回的数据（与列表顺序一致，如果任意一个失败则返回空列表）
+    """
+    if session is None:
+        session = get_session()
+    result_list: list[ActionResult] = []
+    async with session:
+        try:
+            for uid, amount in updates:
+                data: ActionResult = await add_balance(
+                    uid, currency_id, amount, source, session
+                )
+                session.add(data)
+                result_list.append(data)
+            if not all(r.success for r in result_list):
+                if fail_then_rollback:
+                    await session.rollback()
+                return [] if not return_all_on_fail else result_list
+            await session.commit()
+            return result_list
+        except Exception:
+            await session.rollback()
             raise
 
 

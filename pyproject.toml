@@ -1,19 +1,15 @@
 [project]
 name = "nonebot-plugin-value"
-version = "0.0.9.post2"
-description = "Value API for NoneBot2"
+version = "0.1.0"
+description = "Economy API for NoneBot2"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10, <4.0.0"
 dependencies = [
-    "aiomysql>=0.2.0",
-    "aiomysql>=0.2.0",
-    "aiosqlite>=0.21.0",
     "nonebot-plugin-orm>=0.8.1",
     "nonebot2>=2.4.2",
     "psycopg2-binary>=2.9.10",
-    "psycopg2-binary>=2.9.10",
-    "pydantic>=2.11.7",
-    "sqlalchemy>=2.0.41",
+    "pydantic>=2.11.7, <3.0.0",
+    "sqlalchemy[aiomysql,aiosqlite]>=2.0.41",
 ]
 
 [tool.ruff]

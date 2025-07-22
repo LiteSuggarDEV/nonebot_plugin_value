@@ -80,6 +80,27 @@ async def add_balance(
     ...
 ```
 
+### `batch_add_balance`
+
+```python
+async def batch_add_balance(
+    updates: list[tuple[str, float]],
+    currency_id: str | None = None,
+    source: str = "batch_update",
+) -> list[UserAccountData]:
+    """批量添加账户余额
+
+    Args:
+        updates (list[tuple[str, float]]): 元组列表，包含用户id和金额
+        currency_id (str | None, optional): 货币ID. Defaults to None.
+        source (str, optional): 源说明. Defaults to "batch_update".
+
+    Returns:
+        list[UserAccountData]: 用户账户数据列表
+    """
+    ...
+```
+
 ### `~~.del_balacne`
 
 ```python
@@ -102,6 +123,27 @@ async def del_balance(
 
     Returns:
         UserAccountData: 用户数据
+    """
+    ...
+```
+
+### `~~.batch_del_balance`
+
+```python
+async def batch_del_balance(
+    updates: list[tuple[str, float]],
+    currency_id: str | None = None,
+    source: str = "batch_update",
+) -> list[UserAccountData]:
+    """批量减少账户余额
+
+    Args:
+        updates (list[tuple[str, float]]): 元组列表，包含用户id和金额
+        currency_id (str | None, optional): 货币ID. Defaults to None.
+        source (str, optional): 源说明. Defaults to "batch_update".
+
+    Returns:
+        list[UserAccountData]: 用户账户数据列表
     """
     ...
 ```

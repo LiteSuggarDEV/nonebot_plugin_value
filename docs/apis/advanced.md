@@ -190,6 +190,33 @@ async def del_balance(
     ...
 ```
 
+### `~~.batch_del_balance`
+
+```python
+async def batch_del_balance(
+    updates: list[tuple[str, float]],
+    currency_id: str,
+    source: str = "batch_update",
+    session: AsyncSession | None = None,
+    fail_then_rollback: bool = True,
+    return_all_on_fail: bool = False,
+) -> list[ActionResult]:
+    """批量减少账户余额
+
+    Args:
+        updates (list[tuple[str, float]]): 元组列表，包含用户id和金额
+        currency_id (str): 货币ID
+        source (str, optional): 源. Defaults to "batch_update".
+        session (AsyncSession | None, optional): 异步Session. Defaults to None.
+        fail_then_rollback (bool, optional): 失败时是否回滚. Defaults to True.
+        return_all_on_fail (bool, optional): 批量操作失败时是否仍然返回所有结果. Defaults to False.
+
+    Returns:
+        list[ActionResult]: 操作结果列表
+    """
+    ...
+```
+
 ### `~~.add_balance`
 
 ```python
@@ -211,6 +238,32 @@ async def add_balance(
 
     Returns:
         ActionResult: 是否成功("success")，消息说明("message")
+    """
+    ...
+```
+
+### `~~.batch_add_balance`
+
+```python
+async def batch_add_balance(
+    updates: list[tuple[str, float]],
+    currency_id: str,
+    source: str = "batch_update",
+    session: AsyncSession | None = None,
+    fail_then_rollback: bool = True,
+    return_all_on_fail: bool = False,
+) -> list[ActionResult]:
+    """批量添加余额
+
+    Args:
+        updates (list[tuple[str, float]]): 元组列表 [(用户ID, 金额变化)]
+        source (str, optional): 来源. Defaults to "batch_update".
+        session (AsyncSession | None, optional): 会话. Defaults to None.
+        fail_then_rollback (bool, optional): 失败时是否回滚. Defaults to True.
+        return_all_on_fail (bool, optional): 返回所有结果即使失败时. Defaults to False.
+
+    Returns:
+        list[ActionResult]: 返回的数据（与列表顺序一致，如果任意一个失败则返回空列表）
     """
     ...
 ```
