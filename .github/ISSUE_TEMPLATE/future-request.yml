@@ -1,12 +1,12 @@
 name: 新功能
-description: 您希望Value插件添加什么新功能
+description: 您希望EconomyValue插件添加什么新功能
 title: '[New Feature] '
 labels: [enhancement]
 body:
   - type: markdown
     attributes:
       value: |
-        欢迎来到 Value插件 新功能提交处。
+        欢迎来到 EconomyValue插件 新功能提交处。
   - type: textarea
     id: feature-new-content
     attributes:

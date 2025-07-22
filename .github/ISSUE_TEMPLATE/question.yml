@@ -16,10 +16,10 @@ body:
     validations:
       required: true
   - type: input
-    id: Value-version
+    id: EconomyValue-version
     attributes:
-      label: Value插件 版本
-      description: Value的版本
+      label: EconomyValue插件 版本
+      description: EconomyValue的版本
       placeholder: 1.0.0
     validations:
       required: false
@@ -31,9 +31,9 @@ body:
     validations:
       required: true
   - type: textarea
-    id: Value-log
+    id: EconomyValue-log
     attributes:
-      label: Value插件 运行日志
+      label: EconomyValue插件 运行日志
       description: 请粘贴插件运行后报错的控制台内容到此，如果您认为这有帮助。
       render: shell
     validations:

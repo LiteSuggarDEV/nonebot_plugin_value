@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        欢迎来到 Value插件 的 Issue Tracker！请填写以下表格来提交 Bug。
+        欢迎来到 EconomyEconomyValue插件 的 Issue Tracker！请填写以下表格来提交 Bug。
   - type: input
     id: python-version
     attributes:
@@ -16,10 +16,10 @@ body:
     validations:
       required: true
   - type: input
-    id: Value-version
+    id: EconomyValue-version
     attributes:
       label: 版本
-      description: Value插件的版本
+      description: EconomyValue插件的版本
       placeholder: 1.9.0
     validations:
       required: true
@@ -27,7 +27,7 @@ body:
     id: what-happened
     attributes:
       label: 发生了什么?
-      description: 填写你认为的 Value插件 的不正常行为
+      description: 填写你认为的 EconomyValue插件 的不正常行为
     validations:
       required: true
   - type: textarea
@@ -45,12 +45,12 @@ body:
     id: what-expected
     attributes:
       label: 期望的结果?
-      description: 填写你认为 Value插件 应当执行的正常行为
+      description: 填写你认为 EconomyValue插件 应当执行的正常行为
     validations:
       required: true
   - type: textarea
-    id: Value-log
+    id: EconomyValue-log
     attributes:
-      label: Value插件 运行日志
+      label: EconomyValue插件 运行日志
       description: 请粘贴插件运行后报错的控制台内容到此
       render: shell

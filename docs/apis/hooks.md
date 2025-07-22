@@ -1,4 +1,4 @@
-# Value-交易钩子函数文档
+# EconomyValue-交易钩子函数文档
 
 ## 简介
 
@@ -12,24 +12,24 @@
 ```mermaid
 
 ---
-title: Value交易时运行流程图
+title: EconomyValue交易时运行流程图
 ---
 
 sequenceDiagram
     actor 其他插件
-    participant ValueAPI
-    participant Value内部
+    participant EconomyValueAPI
+    participant EconomyValue内部
     
 
-    其他插件 ->> ValueAPI: 创建交易
-    ValueAPI ->> Value内部: 创建交易
-    Value内部 ->> PreHook: 交易前处理
-    PreHook ->> Value内部: 交易前处理完成
-    Value内部 ->> 数据库操作: 储存交易
-    数据库操作 ->> Value内部: 交易储存完成
-    Value内部 --) PostHook: 交易后处理
-    Value内部 ->> ValueAPI: 交易处理完成
-    ValueAPI ->> 其他插件: 返回结果
+    其他插件 ->> EconomyValueAPI: 创建交易
+    EconomyValueAPI ->> EconomyValue内部: 创建交易
+    EconomyValue内部 ->> PreHook: 交易前处理
+    PreHook ->> EconomyValue内部: 交易前处理完成
+    EconomyValue内部 ->> 数据库操作: 储存交易
+    数据库操作 ->> EconomyValue内部: 交易储存完成
+    EconomyValue内部 --) PostHook: 交易后处理
+    EconomyValue内部 ->> EconomyValueAPI: 交易处理完成
+    EconomyValueAPI ->> 其他插件: 返回结果
  
 ```
 
