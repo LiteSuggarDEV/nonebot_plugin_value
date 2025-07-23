@@ -1,27 +1,13 @@
 from nonebot_plugin_orm import get_session
 
 from ..pyd_models.currency_pyd import CurrencyData
+from ..services.currency import create_currency as _create_currency
 from ..services.currency import get_currency as _g_currency
 from ..services.currency import get_default_currency as _default_currency
-from ..services.currency import get_or_create_currency as _create_currency
+from ..services.currency import get_or_create_currency as _get_or_create_currency
 from ..services.currency import list_currencies as _currencies
 from ..services.currency import remove_currency as _remove_currency
 from ..services.currency import update_currency as _update_currency
-
-
-async def get_or_create_currency(currency_data: CurrencyData) -> CurrencyData:
-    """获取或者创建货币
-
-    Args:
-        currency_data (CurrencyData): 货币数据
-
-    Returns:
-        CurrencyData: 货币数据
-    """
-    if (data := await get_currency(currency_data.id)) is None:
-        return await create_currency(currency_data)
-    else:
-        return data
 
 
 async def update_currency(currency_data: CurrencyData) -> CurrencyData:
@@ -115,8 +101,21 @@ async def get_default_currency() -> CurrencyData:
         )
 
 
-async def create_currency(currency_data: CurrencyData) -> CurrencyData:
-    """创建货币
+async def create_currency(currency_data: CurrencyData) -> None:
+    """创建新货币
+
+    Args:
+        currency_data (CurrencyData): 货币信息
+
+    Returns:
+        CurrencyData: 货币信息
+    """
+    async with get_session() as session:
+        await _create_currency(currency_data, session)
+
+
+async def get_or_create_currency(currency_data: CurrencyData) -> CurrencyData:
+    """获取或者创建货币
 
     Args:
         currency_data (CurrencyData): 货币数据
@@ -125,7 +124,7 @@ async def create_currency(currency_data: CurrencyData) -> CurrencyData:
         CurrencyData: 货币数据
     """
     async with get_session() as session:
-        currency, _ = await _create_currency(currency_data, session)
+        currency, _ = await _get_or_create_currency(currency_data, session)
         return CurrencyData(
             id=currency.id,
             allow_negative=currency.allow_negative,

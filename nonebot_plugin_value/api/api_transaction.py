@@ -1,8 +1,55 @@
+from datetime import datetime
+
 from nonebot_plugin_orm import get_session
 
 from ..pyd_models.transaction_pyd import TransactionData
 from ..services.transaction import get_transaction_history as _transaction_history
+from ..services.transaction import (
+    get_transaction_history_by_time_range as _transaction_history_by_time_range,
+)
 from ..services.transaction import remove_transaction as _remove_transaction
+
+
+async def get_transaction_history_by_time_range(
+    account_id: str,
+    start_time: float,
+    end_time: float,
+    limit: int = 10,
+) -> list[TransactionData]:
+    """通过时间范围获取交易记录
+
+    Args:
+        account_id (str): 账户ID
+        start_time (datetime): 开始时间
+        end_time (datetime): 结束时间
+        limit (int, optional): 最大记录数. Defaults to 10.
+
+    Returns:
+        list[TransactionData]: 交易记录
+    """
+    async with get_session() as session:
+        data = await _transaction_history_by_time_range(
+            account_id,
+            datetime.fromtimestamp(start_time),
+            datetime.fromtimestamp(end_time),
+            session,
+            limit,
+        )
+        result_list: list[TransactionData] = [
+            TransactionData(
+                id=transaction.id,
+                account_id=transaction.account_id,
+                currency_id=transaction.currency_id,
+                amount=transaction.amount,
+                action=transaction.action,
+                source=transaction.source,
+                balance_before=transaction.balance_before,
+                balance_after=transaction.balance_after,
+                timestamp=transaction.timestamp,
+            )
+            for transaction in data
+        ]
+        return result_list
 
 
 async def get_transaction_history(

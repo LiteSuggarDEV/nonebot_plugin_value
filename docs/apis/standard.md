@@ -1,4 +1,4 @@
-# Value-标准 API 文档
+# EconomyValue-标准 API 文档
 
 > **标准 API 文档**
 
@@ -80,6 +80,27 @@ async def add_balance(
     ...
 ```
 
+### `batch_add_balance`
+
+```python
+async def batch_add_balance(
+    updates: list[tuple[str, float]],
+    currency_id: str | None = None,
+    source: str = "batch_update",
+) -> list[UserAccountData]:
+    """批量添加账户余额
+
+    Args:
+        updates (list[tuple[str, float]]): 元组列表，包含用户id和金额
+        currency_id (str | None, optional): 货币ID. Defaults to None.
+        source (str, optional): 源说明. Defaults to "batch_update".
+
+    Returns:
+        list[UserAccountData]: 用户账户数据列表
+    """
+    ...
+```
+
 ### `~~.del_balacne`
 
 ```python
@@ -102,6 +123,27 @@ async def del_balance(
 
     Returns:
         UserAccountData: 用户数据
+    """
+    ...
+```
+
+### `~~.batch_del_balance`
+
+```python
+async def batch_del_balance(
+    updates: list[tuple[str, float]],
+    currency_id: str | None = None,
+    source: str = "batch_update",
+) -> list[UserAccountData]:
+    """批量减少账户余额
+
+    Args:
+        updates (list[tuple[str, float]]): 元组列表，包含用户id和金额
+        currency_id (str | None, optional): 货币ID. Defaults to None.
+        source (str, optional): 源说明. Defaults to "batch_update".
+
+    Returns:
+        list[UserAccountData]: 用户账户数据列表
     """
     ...
 ```
@@ -246,6 +288,29 @@ async def remove_currency(currency_id: str):
 ## transaction-API(`~~`代指`~.api.api_transaction`)
 
 <details>
+
+### `~~.get_transaction_history_by_time_range`
+
+```python
+async def get_transaction_history_by_time_range(
+    account_id: str,
+    start_time: float,
+    end_time: float,
+    limit: int = 10,
+) -> list[TransactionData]:
+    """通过时间范围获取交易记录
+
+    Args:
+        account_id (str): 账户ID
+        start_time (datetime): 开始时间
+        end_time (datetime): 结束时间
+        limit (int, optional): 最大记录数. Defaults to 10.
+
+    Returns:
+        list[TransactionData]: 交易记录
+    """
+    ...
+```
 
 ### `~~.get_transaction_history`
 

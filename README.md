@@ -2,7 +2,7 @@
   <a href="https://github.com/JohnRichard4096/nonebot_plugin_value/">
     <img src="https://github.com/user-attachments/assets/b5162036-5b17-4cf4-b0cb-8ec842a71bc6" width="200" alt="value Logo">
   </a>
-  <h1>Value</h1>
+  <h1>EconomyValue</h1>
   <h3>基于SQLAlchemy长期存储的新一代经济API</h3>
 
   <p>
@@ -34,6 +34,10 @@
 - 🔁 钩子系统：支持交易前后触发自定义逻辑
 - 📊 完整审计：所有交易记录包含完整上下文信息
 - 🔐 安全控制：支持负余额限制
+- 📝 批量操作：支持批量修改用户的货币数据
+- 🔍 时间范围审计日志：从时间范围获取交易记录
+- 🚀 导出数据：支持从Json文件导入，导出到Json文件
+- 🛠 CLI指令：在nb-cli可执行的维护操作指令
 
 ### 快速开始
 
@@ -68,4 +72,4 @@ plugins = ["nonebot_plugin_value"]
 
 1. 升级 nonebot_plugin_value 到最新版本
 
-2. 运行迁移脚本(（如果 Bot 根目录下**没有**迁移脚本目录，请使用`nb orm init`来初始化。）在 bot 根目录使用`nb orm revison`再`nb orm upgrade`进行迁移)
+2. 生成并运行迁移脚本(（如果 Bot 根目录下**没有**迁移脚本目录，请使用`nb orm init`来初始化。）在 bot 根目录使用`nb orm revison`再`nb orm upgrade`进行迁移)

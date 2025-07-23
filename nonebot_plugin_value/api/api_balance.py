@@ -2,6 +2,8 @@ from nonebot_plugin_orm import get_session
 
 from ..pyd_models.balance_pyd import UserAccountData
 from ..services.balance import add_balance as _a_balance
+from ..services.balance import batch_add_balance as _batch_add
+from ..services.balance import batch_del_balance as _batch_del
 from ..services.balance import del_account as _del_account
 from ..services.balance import del_balance as _d_balance
 from ..services.balance import get_or_create_account as _go_account
@@ -72,6 +74,58 @@ async def get_or_create_account(
             balance=data.balance,
             last_updated=data.last_updated,
         )
+
+
+async def batch_del_balance(
+    updates: list[tuple[str, float]],
+    currency_id: str | None = None,
+    source: str = "batch_update",
+) -> list[UserAccountData]:
+    """批量减少账户余额
+
+    Args:
+        updates (list[tuple[str, float]]): 元组列表，包含用户id和金额
+        currency_id (str | None, optional): 货币ID. Defaults to None.
+        source (str, optional): 源说明. Defaults to "batch_update".
+
+    Returns:
+        list[UserAccountData]: 用户账户数据列表
+    """
+    data_list: list[UserAccountData] = []
+    if currency_id is None:
+        currency_id = (await _get_default()).id
+    await _batch_del(
+        updates, currency_id, source, fail_then_rollback=True, return_all_on_fail=True
+    )
+    for user_id, _ in updates:
+        data_list.append(await get_or_create_account(user_id, currency_id))
+    return data_list
+
+
+async def batch_add_balance(
+    updates: list[tuple[str, float]],
+    currency_id: str | None = None,
+    source: str = "batch_update",
+) -> list[UserAccountData]:
+    """批量添加账户余额
+
+    Args:
+        updates (list[tuple[str, float]]): 元组列表，包含用户id和金额
+        currency_id (str | None, optional): 货币ID. Defaults to None.
+        source (str, optional): 源说明. Defaults to "batch_update".
+
+    Returns:
+        list[UserAccountData]: 用户账户数据列表
+    """
+    data_list: list[UserAccountData] = []
+    if currency_id is None:
+        currency_id = (await _get_default()).id
+    await _batch_add(
+        updates, currency_id, source, fail_then_rollback=True, return_all_on_fail=True
+    )
+    for user_id, _ in updates:
+        data_list.append(await get_or_create_account(user_id, currency_id))
+    return data_list
 
 
 async def add_balance(

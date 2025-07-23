@@ -2,8 +2,9 @@ from nonebot import get_driver
 from nonebot.plugin import PluginMetadata, require
 
 require("nonebot_plugin_orm")
+require("nonebot_plugin_localstore")
 
-from . import action_type, repository
+from . import action_type, migrations, repository
 from .api import api_balance, api_currency, api_transaction
 from .api.api_currency import get_or_create_currency
 from .hook import context, exception, hooks_manager, hooks_type
@@ -15,11 +16,13 @@ from .services import balance, transaction
 from .services import currency as currency_api
 
 __plugin_meta__ = PluginMetadata(
-    name="Value",
-    description="通用经济API插件",
+    name="EconomyValue",
+    description="Nonebot通用经济API插件",
     usage="请查看API文档。",
     type="library",
     homepage="https://github.com/JohnRichard4096/nonebot_plugin_value",
+    extra={"orm_version_location": migrations}, # 迁移文件
+    supported_adapters=None, # 没有使用任何适配器提供的功能
 )
 
 __all__ = [

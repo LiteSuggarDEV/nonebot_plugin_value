@@ -21,17 +21,29 @@ class CurrencyRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def createcurrency(self, currency_data: CurrencyData) -> CurrencyMeta:
+    async def get_or_create_currency(
+        self, currency_data: CurrencyData
+    ) -> tuple[CurrencyMeta, bool]:
+        """获取或创建货币"""
+        async with self.session as session:
+            stmt = await session.execute(
+                select(CurrencyMeta).where(
+                    CurrencyMeta.id == currency_data.id,
+                )
+            )
+            if (currency := stmt.scalars().first()) is not None:
+                return currency, True
+            await self.createcurrency(currency_data)
+            result = await self.get_currency(currency_data.id)
+            assert result is not None
+            return result, False
+
+    async def createcurrency(self, currency_data: CurrencyData):
         async with self.session as session:
             """创建新货币"""
             stmt = insert(CurrencyMeta).values(**dict(currency_data))
             await session.execute(stmt)
             await session.commit()
-            stmt = select(CurrencyMeta).where(CurrencyMeta.id == currency_data.id)
-            result = await session.execute(stmt)
-            currency_meta = result.scalar_one()
-            session.add(currency_meta)
-            return currency_meta
 
     async def update_currency(self, currency_data: CurrencyData) -> CurrencyMeta:
         """更新货币信息"""
@@ -277,7 +289,9 @@ class TransactionRepository:
             session.add(transaction)
             return transaction
 
-    async def get_transaction_history(self, account_id: str, limit: int = 100):
+    async def get_transaction_history(
+        self, account_id: str, limit: int = 100
+    ) -> Sequence[Transaction]:
         """获取账户交易历史"""
         result = await self.session.execute(
             select(Transaction)
@@ -289,7 +303,30 @@ class TransactionRepository:
         self.session.add_all(data)
         return data
 
-    async def remove_transaction(self, transaction_id: str):
+    async def get_transaction_history_by_time_range(
+        self,
+        account_id: str,
+        start_time: datetime,
+        end_time: datetime,
+        limit: int = 100,
+    ) -> Sequence[Transaction]:
+        """获取账户交易历史"""
+        async with self.session as session:
+            result = await session.execute(
+                select(Transaction)
+                .where(
+                    Transaction.account_id == account_id,
+                    Transaction.timestamp >= start_time,
+                    Transaction.timestamp <= end_time,
+                )
+                .order_by(Transaction.timestamp.desc())
+                .limit(limit)
+            )
+            data = result.scalars().all()
+            session.add_all(data)
+        return data
+
+    async def remove_transaction(self, transaction_id: str) -> None:
         """删除交易记录"""
         async with self.session as session:
             transaction = (

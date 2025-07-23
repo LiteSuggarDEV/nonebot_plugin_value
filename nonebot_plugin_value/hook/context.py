@@ -1,29 +1,14 @@
 # 事件钩子上下文
-from typing import Any
-
 from pydantic import BaseModel, Field
 
 from .exception import CancelAction
 
 
-class BasicModel(BaseModel):
-    """Base context for all hooks
-
-    Args:
-        BaseModel (BaseModel): extends pydantic BaseModel
-    """
-
-    def __getitem__(self, key: str) -> Any:
-        if not hasattr(self, key):
-            raise KeyError(f"Key {key} not found in context")
-        return getattr(self, key)
-
-
-class TransactionContext(BasicModel):
+class TransactionContext(BaseModel):
     """Transaction context
 
     Args:
-        BasicModel (BasicModel): extends pydantic BaseModel
+        BaseModel (BaseModel): extends pydantic BaseModel
     """
 
     user_id: str = Field(default_factory=str)  # 用户的唯一标识ID
@@ -35,11 +20,11 @@ class TransactionContext(BasicModel):
         raise CancelAction(reason)
 
 
-class TransactionComplete(BasicModel):
+class TransactionComplete(BaseModel):
     """Transaction complete
 
     Args:
-        BasicModel (BasicModel): extends pydantic BaseModel
+        BaseModel (BaseModel): extends pydantic BaseModel
     """
 
     message: str = Field(default="")

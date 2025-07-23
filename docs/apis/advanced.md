@@ -1,4 +1,4 @@
-# Value-高级 API 文档
+# EconomyValue-高级 API 文档
 
 > **本 API 为服务层 API，包含有关数据库操作的核心逻辑**
 
@@ -65,6 +65,22 @@ async def get_currency(currency_id: str, session: AsyncSession) -> CurrencyMeta 
 
     Returns:
         CurrencyMeta | None: 货币元数据（不存在为None）
+    """
+    ...
+```
+
+### `~~.create_currency`
+
+```python
+async def create_currency(currency_data: CurrencyData, session: AsyncSession) -> None:
+    """创建货币
+
+    Args:
+        session (AsyncSession): SQLAlchemy的异步session
+        currency_data (CurrencyData): 货币数据
+
+    Returns:
+        CurrencyMeta: 创建的货币元数据
     """
     ...
 ```
@@ -190,6 +206,33 @@ async def del_balance(
     ...
 ```
 
+### `~~.batch_del_balance`
+
+```python
+async def batch_del_balance(
+    updates: list[tuple[str, float]],
+    currency_id: str,
+    source: str = "batch_update",
+    session: AsyncSession | None = None,
+    fail_then_rollback: bool = True,
+    return_all_on_fail: bool = False,
+) -> list[ActionResult]:
+    """批量减少账户余额
+
+    Args:
+        updates (list[tuple[str, float]]): 元组列表，包含用户id和金额
+        currency_id (str): 货币ID
+        source (str, optional): 源. Defaults to "batch_update".
+        session (AsyncSession | None, optional): 异步Session. Defaults to None.
+        fail_then_rollback (bool, optional): 失败时是否回滚. Defaults to True.
+        return_all_on_fail (bool, optional): 批量操作失败时是否仍然返回所有结果. Defaults to False.
+
+    Returns:
+        list[ActionResult]: 操作结果列表
+    """
+    ...
+```
+
 ### `~~.add_balance`
 
 ```python
@@ -211,6 +254,32 @@ async def add_balance(
 
     Returns:
         ActionResult: 是否成功("success")，消息说明("message")
+    """
+    ...
+```
+
+### `~~.batch_add_balance`
+
+```python
+async def batch_add_balance(
+    updates: list[tuple[str, float]],
+    currency_id: str,
+    source: str = "batch_update",
+    session: AsyncSession | None = None,
+    fail_then_rollback: bool = True,
+    return_all_on_fail: bool = False,
+) -> list[ActionResult]:
+    """批量添加余额
+
+    Args:
+        updates (list[tuple[str, float]]): 元组列表 [(用户ID, 金额变化)]
+        source (str, optional): 来源. Defaults to "batch_update".
+        session (AsyncSession | None, optional): 会话. Defaults to None.
+        fail_then_rollback (bool, optional): 失败时是否回滚. Defaults to True.
+        return_all_on_fail (bool, optional): 返回所有结果即使失败时. Defaults to False.
+
+    Returns:
+        list[ActionResult]: 返回的数据（与列表顺序一致，如果任意一个失败则返回空列表）
     """
     ...
 ```
@@ -249,6 +318,31 @@ async def transfer_funds(
 ## transaction-API(`~~`代指`~.services.transaction`)
 
 <details>
+
+### `~~.get_transaction_history_by_time_range`
+
+```python
+async def get_transaction_history_by_time_range(
+    account_id: str,
+    start_time: datetime,
+    end_time: datetime,
+    session: AsyncSession,
+    limit: int = 100,
+):
+    """通过时间范围获取账户交易历史
+
+    Args:
+        account_id (str): 用户ID
+        start_time (datetime): 起始时间
+        end_time (datetime): 结束时间
+        limit (int, optional): 条数限制. Defaults to 100.
+        session (AsyncSession): 会话.
+
+    Returns:
+        Sequence[Transaction]: 记录
+    """
+    ...
+```
 
 ### `~~.get_transaction_history`
 

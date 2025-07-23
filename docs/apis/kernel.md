@@ -1,4 +1,4 @@
-# Value-底层 API 文档
+# EconomyValue-底层 API 文档
 
 > **本 API 为数据层 API，包含操作数据库的底层逻辑**
 
@@ -24,7 +24,12 @@ class CurrencyRepository:
     def __init__(self, session: AsyncSession):
         ...
 
-    async def createcurrency(self, currency_data: CurrencyData) -> CurrencyMeta:
+    async def get_or_create_currency(
+        self, currency_data: CurrencyData
+    ) -> tuple[CurrencyMeta, bool]:
+        """获取或创建货币"""
+
+    async def createcurrency(self, currency_data: CurrencyData) -> None:
         """创建新货币"""
         ...
 
@@ -115,6 +120,16 @@ class TransactionRepository:
 
     async def remove_transaction(self, transaction_id: str) -> bool:
         """删除交易记录"""
+        ...
+    
+    async def get_transaction_history_by_time_range(
+        self,
+        account_id: str,
+        start_time: datetime,
+        end_time: datetime,
+        limit: int = 100,
+    ) -> Sequence[Transaction]:
+        """获取账户交易历史"""
         ...
 ```
 
