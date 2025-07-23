@@ -37,7 +37,6 @@
 - 📝 批量操作：支持批量修改用户的货币数据
 - 🔍 时间范围审计日志：从时间范围获取交易记录
 - 🚀 导出数据：支持从Json文件导入，导出到Json文件
-- 🛠 CLI指令：在nb-cli可执行的维护操作指令
 
 ### 快速开始
 
@@ -72,4 +71,4 @@ plugins = ["nonebot_plugin_value"]
 
 1. 升级 nonebot_plugin_value 到最新版本
 
-2. 生成并运行迁移脚本(（如果 Bot 根目录下**没有**迁移脚本目录，请使用`nb orm init`来初始化。）在 bot 根目录使用`nb orm revison`再`nb orm upgrade`进行迁移)
+2. 在机器人根目录使用`nb orm upgrade`命令升级数据库
