@@ -1,6 +1,35 @@
+from datetime import datetime
+
 from nonebot_plugin_orm import AsyncSession
 
 from ..repository import TransactionRepository
+
+
+async def get_transaction_history_by_time_range(
+    account_id: str,
+    start_time: datetime,
+    end_time: datetime,
+    session: AsyncSession,
+    limit: int = 100,
+):
+    """通过时间范围获取账户交易历史
+
+    Args:
+        account_id (str): 用户ID
+        start_time (datetime): 起始时间
+        end_time (datetime): 结束时间
+        limit (int, optional): 条数限制. Defaults to 100.
+        session (AsyncSession): 会话.
+
+    Returns:
+        Sequence[Transaction]: 记录
+    """
+    return await TransactionRepository(session).get_transaction_history_by_time_range(
+        account_id,
+        start_time,
+        end_time,
+        limit,
+    )
 
 
 async def get_transaction_history(

@@ -277,7 +277,9 @@ class TransactionRepository:
             session.add(transaction)
             return transaction
 
-    async def get_transaction_history(self, account_id: str, limit: int = 100):
+    async def get_transaction_history(
+        self, account_id: str, limit: int = 100
+    ) -> Sequence[Transaction]:
         """获取账户交易历史"""
         result = await self.session.execute(
             select(Transaction)
@@ -289,7 +291,30 @@ class TransactionRepository:
         self.session.add_all(data)
         return data
 
-    async def remove_transaction(self, transaction_id: str):
+    async def get_transaction_history_by_time_range(
+        self,
+        account_id: str,
+        start_time: datetime,
+        end_time: datetime,
+        limit: int = 100,
+    ) -> Sequence[Transaction]:
+        """获取账户交易历史"""
+        async with self.session as session:
+            result = await session.execute(
+                select(Transaction)
+                .where(
+                    Transaction.account_id == account_id,
+                    Transaction.timestamp >= start_time,
+                    Transaction.timestamp <= end_time,
+                )
+                .order_by(Transaction.timestamp.desc())
+                .limit(limit)
+            )
+            data = result.scalars().all()
+            session.add_all(data)
+        return data
+
+    async def remove_transaction(self, transaction_id: str) -> None:
         """删除交易记录"""
         async with self.session as session:
             transaction = (

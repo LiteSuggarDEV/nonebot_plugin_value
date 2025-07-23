@@ -116,6 +116,16 @@ class TransactionRepository:
     async def remove_transaction(self, transaction_id: str) -> bool:
         """删除交易记录"""
         ...
+    
+    async def get_transaction_history_by_time_range(
+        self,
+        account_id: str,
+        start_time: datetime,
+        end_time: datetime,
+        limit: int = 100,
+    ) -> Sequence[Transaction]:
+        """获取账户交易历史"""
+        ...
 ```
 
 </details>

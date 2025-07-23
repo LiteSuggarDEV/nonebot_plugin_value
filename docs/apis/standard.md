@@ -289,6 +289,29 @@ async def remove_currency(currency_id: str):
 
 <details>
 
+### `~~.get_transaction_history_by_time_range`
+
+```python
+async def get_transaction_history_by_time_range(
+    account_id: str,
+    start_time: float,
+    end_time: float,
+    limit: int = 10,
+) -> list[TransactionData]:
+    """通过时间范围获取交易记录
+
+    Args:
+        account_id (str): 账户ID
+        start_time (datetime): 开始时间
+        end_time (datetime): 结束时间
+        limit (int, optional): 最大记录数. Defaults to 10.
+
+    Returns:
+        list[TransactionData]: 交易记录
+    """
+    ...
+```
+
 ### `~~.get_transaction_history`
 
 ```python
