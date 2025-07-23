@@ -171,3 +171,12 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# data
+*.db
+*.sqlite3
+/migrations/
+/data/
+/config/
+/logs/
+/.ruff_cache/
