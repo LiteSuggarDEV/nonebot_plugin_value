@@ -69,6 +69,22 @@ async def get_currency(currency_id: str, session: AsyncSession) -> CurrencyMeta 
     ...
 ```
 
+### `~~.create_currency`
+
+```python
+async def create_currency(currency_data: CurrencyData, session: AsyncSession) -> None:
+    """创建货币
+
+    Args:
+        session (AsyncSession): SQLAlchemy的异步session
+        currency_data (CurrencyData): 货币数据
+
+    Returns:
+        CurrencyMeta: 创建的货币元数据
+    """
+    ...
+```
+
 ### `~~.get_or_create_currency`
 
 ```python

@@ -21,17 +21,29 @@ class CurrencyRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def createcurrency(self, currency_data: CurrencyData) -> CurrencyMeta:
+    async def get_or_create_currency(
+        self, currency_data: CurrencyData
+    ) -> tuple[CurrencyMeta, bool]:
+        """获取或创建货币"""
+        async with self.session as session:
+            stmt = await session.execute(
+                select(CurrencyMeta).where(
+                    CurrencyMeta.id == currency_data.id,
+                )
+            )
+            if (currency := stmt.scalars().first()) is not None:
+                return currency, True
+            await self.createcurrency(currency_data)
+            result = await self.get_currency(currency_data.id)
+            assert result is not None
+            return result, False
+
+    async def createcurrency(self, currency_data: CurrencyData):
         async with self.session as session:
             """创建新货币"""
             stmt = insert(CurrencyMeta).values(**dict(currency_data))
             await session.execute(stmt)
             await session.commit()
-            stmt = select(CurrencyMeta).where(CurrencyMeta.id == currency_data.id)
-            result = await session.execute(stmt)
-            currency_meta = result.scalar_one()
-            session.add(currency_meta)
-            return currency_meta
 
     async def update_currency(self, currency_data: CurrencyData) -> CurrencyMeta:
         """更新货币信息"""

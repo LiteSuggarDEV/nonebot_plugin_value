@@ -5,11 +5,11 @@ description = "Economy API for NoneBot2"
 readme = "README.md"
 requires-python = ">=3.10, <4.0.0"
 dependencies = [
+    "aiofiles>=24.1.0",
+    "nonebot-plugin-localstore>=0.7.4",
     "nonebot-plugin-orm>=0.8.1",
     "nonebot2>=2.4.2",
-    "psycopg2-binary>=2.9.10",
-    "pydantic>=2.11.7, <3.0.0",
-    "sqlalchemy[aiomysql,aiosqlite]>=2.0.41",
+    "sqlalchemy>=2.0.41",
 ]
 authors = [{ "name" = "LiteSuggarDEV", "email" = "windowserror@163.com" }]
 [tool.ruff]

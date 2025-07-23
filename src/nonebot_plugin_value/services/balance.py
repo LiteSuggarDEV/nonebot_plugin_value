@@ -3,13 +3,12 @@ from datetime import datetime, timezone
 from nonebot import logger
 from nonebot_plugin_orm import AsyncSession, get_session
 
-from nonebot_plugin_value.models.balance import UserAccount
-
 from ..action_type import Method
 from ..hook.context import TransactionComplete, TransactionContext
 from ..hook.exception import CancelAction
 from ..hook.hooks_manager import HooksManager
 from ..hook.hooks_type import HooksType
+from ..models.balance import UserAccount
 from ..pyd_models.action import ActionResult, TransferResult
 from ..repository import AccountRepository, TransactionRepository
 from ..services.currency import DEFAULT_CURRENCY_UUID
@@ -78,6 +77,7 @@ async def get_or_create_account(
             user_id, currency_id
         )
 
+
 async def batch_del_balance(
     updates: list[tuple[str, float]],
     currency_id: str,
@@ -120,6 +120,7 @@ async def batch_del_balance(
         except Exception:
             await session.rollback()
             raise
+
 
 async def del_balance(
     user_id: str,

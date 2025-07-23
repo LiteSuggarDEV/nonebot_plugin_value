@@ -4,7 +4,7 @@ from typing import Any
 
 from nonebot import logger
 
-from .context import BasicModel
+from .context import TransactionComplete, TransactionContext
 from .exception import CancelAction
 from .hooks_type import HooksType
 
@@ -42,7 +42,9 @@ class HooksManager:
             raise ValueError(f"Invalid hook name: {hook_name}")
         self.__hooks.setdefault(hook_name, []).append(hook_func)
 
-    async def run_hooks(self, hook_name: str, context: BasicModel) -> None:
+    async def run_hooks(
+        self, hook_name: str, context: TransactionComplete | TransactionContext
+    ) -> None:
         if (hooks := self.__hooks.get(hook_name)) is None:
             return
 

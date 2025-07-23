@@ -75,6 +75,7 @@ async def get_or_create_account(
             last_updated=data.last_updated,
         )
 
+
 async def batch_del_balance(
     updates: list[tuple[str, float]],
     currency_id: str | None = None,
@@ -125,6 +126,8 @@ async def batch_add_balance(
     for user_id, _ in updates:
         data_list.append(await get_or_create_account(user_id, currency_id))
     return data_list
+
+
 async def add_balance(
     user_id: str,
     amount: float,

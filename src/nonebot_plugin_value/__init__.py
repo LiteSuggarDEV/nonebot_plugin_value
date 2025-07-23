@@ -2,6 +2,7 @@ from nonebot import get_driver
 from nonebot.plugin import PluginMetadata, require
 
 require("nonebot_plugin_orm")
+require("nonebot_plugin_localstore")
 
 from . import action_type, repository
 from .api import api_balance, api_currency, api_transaction

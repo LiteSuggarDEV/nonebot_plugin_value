@@ -24,7 +24,12 @@ class CurrencyRepository:
     def __init__(self, session: AsyncSession):
         ...
 
-    async def createcurrency(self, currency_data: CurrencyData) -> CurrencyMeta:
+    async def get_or_create_currency(
+        self, currency_data: CurrencyData
+    ) -> tuple[CurrencyMeta, bool]:
+        """获取或创建货币"""
+
+    async def createcurrency(self, currency_data: CurrencyData) -> None:
         """创建新货币"""
         ...
 
