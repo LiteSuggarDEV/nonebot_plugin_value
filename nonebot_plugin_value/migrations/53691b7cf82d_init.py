@@ -41,9 +41,9 @@ def upgrade(name: str = "") -> None:
         "user_accounts",
         sa.Column("uni_id", sa.String(length=255), nullable=False),
         sa.Column("id", sa.String(length=255), nullable=False),
-        sa.Column("forzen", sa.Boolean(), nullable=False),
+        sa.Column("frozen", sa.Boolean(), nullable=False),
         sa.Column("currency_id", sa.String(length=255), nullable=False),
-        sa.Column("balance", sa.FLOAT(), nullable=False), # type: ignore
+        sa.Column("balance", sa.FLOAT(), nullable=False),  # type: ignore
         sa.Column("last_updated", sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(
             ["currency_id"],

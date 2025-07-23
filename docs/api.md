@@ -23,7 +23,7 @@ erDiagram
         string currency_id FK "货币ID (与id组成唯一约束)"
         float balance "账户余额"
         datetime last_updated "最后更新时间"
-        bool forzen "是否冻结"
+        bool frozen "是否冻结"
     }
 
     transactions {
