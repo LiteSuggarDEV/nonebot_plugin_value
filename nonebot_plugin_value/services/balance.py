@@ -108,7 +108,6 @@ async def batch_del_balance(
                 data: ActionResult = await del_balance(
                     uid, currency_id, amount, source, session
                 )
-                session.add(data)
                 result_list.append(data)
 
             if not all(r.success for r in result_list):
@@ -234,7 +233,6 @@ async def batch_add_balance(
                 data: ActionResult = await add_balance(
                     uid, currency_id, amount, source, session
                 )
-                session.add(data)
                 result_list.append(data)
             if not all(r.success for r in result_list):
                 if fail_then_rollback:
