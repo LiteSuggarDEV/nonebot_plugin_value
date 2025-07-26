@@ -3,6 +3,7 @@ class BaseFailed(Exception):
     Base failed exception for all exceptions
     """
 
+
 # start of basic exceptions
 
 
@@ -29,6 +30,7 @@ class TransactionException(BaseFailed):
 
 # start of not found exceptions
 
+
 class NotFoundException(BaseFailed):
     """
     Not found exception
@@ -52,9 +54,11 @@ class TransactionNotFound(NotFoundException, TransactionException):
     Transaction not found exception
     """
 
+
 # end of not found exceptions
 
 # start of other exceptions
+
 
 class AccountFrozen(AccountException):
     """

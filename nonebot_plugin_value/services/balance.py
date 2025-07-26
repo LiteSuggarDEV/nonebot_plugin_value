@@ -14,6 +14,47 @@ from ..repository import AccountRepository, TransactionRepository
 from ..services.currency import DEFAULT_CURRENCY_UUID
 
 
+async def set_frozen(
+    account_id: str,
+    frozen: bool,
+    currency_id: str | None = None,
+    session: AsyncSession | None = None,
+) -> None:
+    """设置账户特定货币的冻结状态
+
+    Args:
+        account_id (str): 账户ID
+        frozen (bool): 是否冻结
+        currency_id (str | None, optional): 货币ID. Defaults to None.
+        session (AsyncSession | None, optional): 异步Session. Defaults to None.
+    """
+    if session is None:
+        session = get_session()
+    async with session:
+        repo = AccountRepository(session)
+        await repo.set_account_frozen(
+            account_id, currency_id or DEFAULT_CURRENCY_UUID.hex, frozen
+        )
+
+
+async def set_frozen_all(
+    account_id: str,
+    frozen: bool,
+    session: AsyncSession | None = None,
+):
+    """冻结这个账户ID下的所有货币储备
+
+    Args:
+        account_id (str): 账户ID
+        frozen (bool): 是否冻结
+        session (AsyncSession | None, optional): 异步Session. Defaults to None.
+    """
+    if session is None:
+        session = get_session()
+    async with session:
+        await AccountRepository(session).set_frozen_all(account_id, frozen)
+
+
 async def del_account(
     account_id: str,
     session: AsyncSession | None = None,

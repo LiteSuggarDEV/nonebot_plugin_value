@@ -148,6 +148,44 @@ async def get_or_create_account(
     ...
 ```
 
+### `~~.set_frozen`
+
+```python
+async def set_frozen(
+    account_id: str,
+    frozen: bool,
+    currency_id: str | None = None,
+    session: AsyncSession | None = None,
+) -> None:
+    """设置账户特定货币的冻结状态
+
+    Args:
+        account_id (str): 账户ID
+        frozen (bool): 是否冻结
+        currency_id (str | None, optional): 货币ID. Defaults to None.
+        session (AsyncSession | None, optional): 异步Session. Defaults to None.
+    """
+    ...
+```
+
+### `set_frozen_all`
+
+```python
+async def set_frozen_all(
+    account_id: str,
+    frozen: bool,
+    session: AsyncSession | None = None,
+):
+    """冻结这个账户ID下的所有货币储备
+
+    Args:
+        account_id (str): 账户ID
+        frozen (bool): 是否冻结
+        session (AsyncSession | None, optional): 异步Session. Defaults to None.
+    """
+    ...
+```
+
 ### `~~.del_account`
 
 ```python

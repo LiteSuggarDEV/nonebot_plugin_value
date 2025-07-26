@@ -165,6 +165,39 @@ class AccountRepository:
             session.add(account)
             return account
 
+    async def set_account_frozen(
+        self,
+        account_id: str,
+        currency_id: str,
+        frozen: bool,
+    ) -> None:
+        """设置账户冻结状态"""
+        async with self.session as session:
+            account = await self.get_or_create_account(account_id, currency_id)
+            session.add(account)
+            account.frozen = frozen
+            await session.commit()
+
+    async def set_frozen_all(self, account_id: str, frozen: bool):
+        async with self.session as session:
+            result = await session.execute(
+                select(UserAccount).where(UserAccount.id == account_id)
+            )
+            accounts = result.scalars().all()
+            session.add_all(accounts)
+            for account in accounts:
+                account.frozen = frozen
+            await session.commit()
+
+    async def is_account_frozen(
+        self,
+        account_id: str,
+        currency_id: str,
+    ) -> bool:
+        """判断账户是否冻结"""
+        async with self.session:
+            return (await self.get_or_create_account(account_id, currency_id)).frozen
+
     async def get_balance(self, account_id: str, currency_id: str) -> float | None:
         """获取账户余额"""
         uni_id = get_uni_id(account_id, currency_id)
