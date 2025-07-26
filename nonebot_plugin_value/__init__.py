@@ -7,6 +7,7 @@ require("nonebot_plugin_localstore")
 from . import action_type, migrations, repository
 from .api import api_balance, api_currency, api_transaction
 from .api.api_currency import get_or_create_currency
+from .api.depends import factory
 from .hook import context, exception, hooks_manager, hooks_type
 from .models import currency
 from .pyd_models import balance_pyd, base_pyd, currency_pyd
@@ -21,8 +22,8 @@ __plugin_meta__ = PluginMetadata(
     usage="请查看API文档。",
     type="library",
     homepage="https://github.com/JohnRichard4096/nonebot_plugin_value",
-    extra={"orm_version_location": migrations}, # 迁移文件
-    supported_adapters=None, # 没有使用任何适配器提供的功能
+    extra={"orm_version_location": migrations},  # 迁移文件
+    supported_adapters=None,
 )
 
 __all__ = [
@@ -38,6 +39,7 @@ __all__ = [
     "currency_api",
     "currency_pyd",
     "exception",
+    "factory",
     "hook",
     "hooks_manager",
     "hooks_type",
