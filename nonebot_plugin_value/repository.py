@@ -6,6 +6,13 @@ from uuid import uuid1, uuid5
 from nonebot_plugin_orm import AsyncSession
 from sqlalchemy import insert, select, update
 
+from .exception import (
+    AccountNotFound,
+    CurrencyNotFound,
+    TransactionException,
+    TransactionNotFound,
+    AccountFrozen,
+)
 from .models.balance import Transaction, UserAccount
 from .models.currency import CurrencyMeta
 from .pyd_models.currency_pyd import CurrencyData
@@ -96,7 +103,7 @@ class CurrencyRepository:
                 )
             ).scalar_one_or_none()
             if not currency:
-                raise ValueError("Currency not found")
+                raise CurrencyNotFound(f"Currency {currency_id} not found")
             await session.delete(currency)
             users = await session.execute(
                 select(UserAccount)
@@ -124,7 +131,7 @@ class AccountRepository:
             result = await session.execute(stmt)
             currency = result.scalar_one_or_none()
             if currency is None:
-                raise ValueError(f"Currency {currency_id} not found")
+                raise CurrencyNotFound(f"Currency {currency_id} not found")
 
             # 检查账户是否存在
             stmt = (
@@ -180,8 +187,13 @@ class AccountRepository:
             ).scalar_one_or_none()
 
             if account is None:
-                raise ValueError("Account not found")
+                raise AccountNotFound("Account not found")
             session.add(account)
+
+            if account.frozen:
+                raise AccountFrozen(
+                    f"Account {account_id} on currency {currency_id} is frozen"
+                )
 
             # 获取货币规则
             currency = await session.get(CurrencyMeta, account.currency_id)
@@ -189,7 +201,7 @@ class AccountRepository:
 
             # 负余额检查
             if amount < 0 and not getattr(currency, "allow_negative", False):
-                raise ValueError("Insufficient funds")
+                raise TransactionException("Insufficient funds")
 
             # 记录原始余额
             old_balance = account.balance
@@ -235,7 +247,7 @@ class AccountRepository:
                 )
             accounts = (await session.execute(stmt)).scalars().all()
             if not accounts:
-                raise ValueError("Account not found")
+                raise AccountNotFound("Account not found")
             for account in accounts:
                 await session.delete(account)
             await session.commit()
@@ -337,6 +349,6 @@ class TransactionRepository:
                 )
             ).scalar_one_or_none()
             if not transaction:
-                raise ValueError("Transaction not found")
+                raise TransactionNotFound("Transaction not found")
             await session.delete(transaction)
             await session.commit()
