@@ -41,7 +41,7 @@ async def dump_data() -> MigrationData:
     for currency in currencies:
         accounts = await list_accounts(currency_id=currency.id)
         for account in accounts:
-            transactions = await get_transaction_history(account.id)
+            transactions = await get_transaction_history(account.id, 100)
             data.accounts.append(
                 AccountMigrationData(
                     account_data=account,

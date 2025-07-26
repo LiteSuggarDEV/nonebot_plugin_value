@@ -8,8 +8,33 @@ from ..services.balance import del_account as _del_account
 from ..services.balance import del_balance as _d_balance
 from ..services.balance import get_or_create_account as _go_account
 from ..services.balance import list_accounts as _list_accounts
+from ..services.balance import set_frozen as _set_frozen
+from ..services.balance import set_frozen_all as _set_frozen_all
 from ..services.balance import transfer_funds as _transfer
 from .api_currency import get_default_currency as _get_default
+
+
+async def set_frozen_all(account_id: str, frozen: bool) -> None:
+    """冻结账户的所有货币资产
+
+    Args:
+        account_id (str): 账户ID
+        frozen (bool): 是否冻结
+    """
+    async with get_session() as session:
+        await _set_frozen_all(account_id, frozen, session)
+
+
+async def set_frozen(account_id: str, currency_id: str, frozen: bool) -> None:
+    """设置账户特定货币冻结状态
+
+    Args:
+        account_id (str): 用户ID
+        currency_id (str): 货币ID
+        frozen (bool): 是否冻结
+    """
+    async with get_session() as session:
+        await _set_frozen(account_id, frozen, currency_id, session)
 
 
 async def list_accounts(currency_id: str | None = None) -> list[UserAccountData]:

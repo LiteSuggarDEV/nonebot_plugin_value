@@ -21,6 +21,34 @@ async def list_accounts(currency_id: str | None = None) -> list[UserAccountData]
     ...
 ```
 
+### `~~.set_frozen`
+
+```python
+async def set_frozen(account_id: str, currency_id: str, frozen: bool) -> None:
+    """设置账户特定货币冻结状态
+
+    Args:
+        account_id (str): 用户ID
+        currency_id (str): 货币ID
+        frozen (bool): 是否冻结
+    """
+    ...
+```
+
+### `~~.set_frozen_all`
+
+```python
+async def set_frozen_all(account_id: str, frozen: bool) -> None:
+    """冻结账户的所有货币资产
+
+    Args:
+        account_id (str): 账户ID
+        frozen (bool): 是否冻结
+    """
+    ...
+```
+
+
 ### `~~.get_or_create_account`
 
 ```python

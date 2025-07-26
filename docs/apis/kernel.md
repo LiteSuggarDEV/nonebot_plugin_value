@@ -66,10 +66,27 @@ class AccountRepository:
         """获取或创建用户账户"""
         ...
 
+    async def set_account_frozen(
+        self,
+        account_id: str,
+        currency_id: str,
+        frozen: bool,
+    ) -> None:
+        """设置账户冻结状态"""
+        ...
+
+    async def is_account_frozen(
+        self,
+        account_id: str,
+        currency_id: str,
+    ) -> bool:
+        """判断账户是否冻结"""
+        ...
+
     async def get_balance(self, account_id: str) -> float | None:
         """获取账户余额"""
         ...
-
+    
     async def update_balance(
         self, account_id: str, amount: float, currency_id: str
     ) -> tuple[float, float]:

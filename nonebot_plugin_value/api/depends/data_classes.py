@@ -24,8 +24,8 @@ class TransactionHistory:
             )
         start_time, end_time = self.timerange
         return await get_transaction_history_by_time_range(
-                to_uuid(event.get_user_id()), start_time, end_time, self.limit
-            )
+            to_uuid(event.get_user_id()), start_time, end_time, self.limit
+        )
 
 
 @dataclass
