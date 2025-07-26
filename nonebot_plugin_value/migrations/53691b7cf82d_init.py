@@ -5,6 +5,7 @@
 创建时间: 2025-07-23 20:57:09.027276
 
 """
+
 from __future__ import annotations
 
 from collections.abc import Sequence
@@ -31,7 +32,7 @@ def upgrade(name: str = "") -> None:
         sa.Column("id", sa.String(length=255), nullable=False),
         sa.Column("display_name", sa.String(length=255), nullable=False),
         sa.Column("symbol", sa.String(length=5), nullable=False),
-        sa.Column("default_balance", sa.FLOAT(), nullable=False), # type: ignore
+        sa.Column("default_balance", sa.FLOAT(), nullable=False),  # type: ignore
         sa.Column("allow_negative", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_currency_meta")),
@@ -63,11 +64,11 @@ def upgrade(name: str = "") -> None:
         sa.Column("id", sa.String(length=255), nullable=False),
         sa.Column("account_id", sa.String(length=255), nullable=False),
         sa.Column("currency_id", sa.String(length=255), nullable=False),
-        sa.Column("amount", sa.FLOAT(), nullable=False), # type: ignore
+        sa.Column("amount", sa.FLOAT(), nullable=False),  # type: ignore
         sa.Column("action", sa.String(length=20), nullable=False),
         sa.Column("source", sa.String(length=255), nullable=False),
-        sa.Column("balance_before", sa.FLOAT(), nullable=False), # type: ignore
-        sa.Column("balance_after", sa.FLOAT(), nullable=False), # type: ignore
+        sa.Column("balance_before", sa.FLOAT(), nullable=False),  # type: ignore
+        sa.Column("balance_after", sa.FLOAT(), nullable=False),  # type: ignore
         sa.Column("timestamp", sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(
             ["account_id"],
