@@ -66,7 +66,7 @@ plugins = ["nonebot_plugin_value"]
 
 添加依赖后，请重新启动 nonebot2
 
-### [API Docs](docs/api.md)
+### [API Docs](https://docs.suggar.top/project/value/docs/api)
 
 ### 更新迁移
 
