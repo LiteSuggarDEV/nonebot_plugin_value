@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-value"
-version = "0.1.1"
+version = "0.1.1.post1"
 description = "Economy API for NoneBot2"
 readme = "README.md"
 requires-python = ">=3.10, <4.0.0"
@@ -11,7 +11,7 @@ dependencies = [
     "alembic>=1.16.2",
     "nonebot-plugin-localstore>=0.7.4",
     "nonebot-plugin-orm>=0.8.2",
-    "nonebot2[fastapi]>=2.4.2",
+    "nonebot2>=2.4.2",
     "sqlalchemy>=2.0.41",
 ]
 
@@ -24,6 +24,7 @@ dev-dependencies = [
     "pyright>=1.0.0",
     "aiosqlite>=0.19.0",
     "aiomysql>=0.2.0",
+    "nonebot2[fastapi]>=2.4.2"
 ]
 
 [tool.uv.pip]

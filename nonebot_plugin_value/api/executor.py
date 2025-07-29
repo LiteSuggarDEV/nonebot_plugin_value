@@ -17,7 +17,7 @@ from .api_currency import get_default_currency
 class AccountExecutor:
     currency_id: str | None = field(default=None)
     user_id: str = field(default="")
-    data_map: dict[str, UserAccountData] = field(default={})
+    data_map: dict[str, UserAccountData] = field(default_factory=lambda: {})
 
     async def __call__(self, event: Event) -> Self:
         self.user_id = to_uuid(event.get_user_id())
