@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 1
 requires-python = ">=3.10, <4.0.0"
 
 [[package]]
@@ -705,14 +705,14 @@ default = [
 
 [[package]]
 name = "nonebot-plugin-value"
-version = "0.1.0"
+version = "0.1.1"
 source = { virtual = "." }
 dependencies = [
     { name = "aiofiles" },
     { name = "alembic" },
     { name = "nonebot-plugin-localstore" },
     { name = "nonebot-plugin-orm" },
-    { name = "nonebot2", extra = ["fastapi"] },
+    { name = "nonebot2" },
     { name = "sqlalchemy" },
 ]
 
@@ -722,6 +722,7 @@ dev = [
     { name = "aiosqlite" },
     { name = "nb-cli" },
     { name = "nonebot-plugin-orm", extra = ["default"] },
+    { name = "nonebot2", extra = ["fastapi"] },
     { name = "pyright" },
     { name = "ruff" },
 ]
@@ -732,7 +733,7 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.16.2" },
     { name = "nonebot-plugin-localstore", specifier = ">=0.7.4" },
     { name = "nonebot-plugin-orm", specifier = ">=0.8.2" },
-    { name = "nonebot2", extras = ["fastapi"], specifier = ">=2.4.2" },
+    { name = "nonebot2", specifier = ">=2.4.2" },
     { name = "sqlalchemy", specifier = ">=2.0.41" },
 ]
 
@@ -742,6 +743,7 @@ dev = [
     { name = "aiosqlite", specifier = ">=0.19.0" },
     { name = "nb-cli", specifier = ">=1.4.1" },
     { name = "nonebot-plugin-orm", extras = ["default"], specifier = ">=0.7.4" },
+    { name = "nonebot2", extras = ["fastapi"], specifier = ">=2.4.2" },
     { name = "pyright", specifier = ">=1.0.0" },
     { name = "ruff", specifier = ">=0.12.0" },
 ]
