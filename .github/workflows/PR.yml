@@ -40,15 +40,14 @@ jobs:
         with:
           python-path: ${{ env.PYTHON_BIN }}
           pylance-version: latest-release
+
       - name: Check code format
         uses: astral-sh/ruff-action@v3
         with:
           args: check . --exit-non-zero-on-fix
+
+      - name: Check database
+        run: nb orm upgrade
+
       - name: Build package
         run: uv build  # 生成构建产物到dist目录
-
-      - name: Save build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-package
-          path: dist/*  # 上传所有构建产物

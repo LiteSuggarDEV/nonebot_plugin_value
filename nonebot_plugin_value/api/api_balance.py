@@ -92,13 +92,7 @@ async def get_or_create_account(
         currency_id = (await _get_default()).id
     async with get_session() as session:
         data = await _go_account(user_id, currency_id, session)
-        return UserAccountData(
-            id=data.id,
-            uni_id=data.uni_id,
-            currency_id=data.currency_id,
-            balance=data.balance,
-            last_updated=data.last_updated,
-        )
+        return UserAccountData.model_validate(data, from_attributes=True)
 
 
 async def batch_del_balance(
