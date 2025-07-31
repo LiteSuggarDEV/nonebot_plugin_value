@@ -102,4 +102,4 @@ async def get_or_create_currency(currency_data: CurrencyData) -> CurrencyData:
     """
     async with get_session() as session:
         currency, _ = await _get_or_create_currency(currency_data, session)
-        return CurrencyData.model_validate(currency)
+        return CurrencyData.model_validate(currency, from_attributes=True)
