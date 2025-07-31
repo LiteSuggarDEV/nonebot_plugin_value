@@ -56,22 +56,26 @@ class CurrencyRepository:
     async def update_currency(self, currency_data: CurrencyData) -> CurrencyMeta:
         """更新货币信息"""
         async with self.session as session:
-            stmt = (
-                update(CurrencyMeta)
-                .where(CurrencyMeta.id == currency_data.id)
-                .values(**dict(currency_data))
-            )
-            await session.execute(stmt)
-            await session.commit()
-            stmt = (
-                select(CurrencyMeta)
-                .where(CurrencyMeta.id == currency_data.id)
-                .with_for_update()
-            )
-            result = await session.execute(stmt)
-            currency_meta = result.scalar_one()
-            session.add(currency_meta)
-            return currency_meta
+            try:
+                stmt = (
+                    update(CurrencyMeta)
+                    .where(CurrencyMeta.id == currency_data.id)
+                    .values(**dict(currency_data))
+                )
+                await session.execute(stmt)
+                await session.commit()
+                stmt = (
+                    select(CurrencyMeta)
+                    .where(CurrencyMeta.id == currency_data.id)
+                    .with_for_update()
+                )
+                result = await session.execute(stmt)
+                currency_meta = result.scalar_one()
+                session.add(currency_meta)
+                return currency_meta
+            except Exception:
+                await session.rollback()
+                raise
 
     async def get_currency(self, currency_id: str) -> CurrencyMeta | None:
         """获取货币信息"""
@@ -127,44 +131,41 @@ class AccountRepository:
     ) -> UserAccount:
         async with self.session as session:
             """获取或创建用户账户"""
-            # 获取货币配置
-            stmt = select(CurrencyMeta).where(CurrencyMeta.id == currency_id)
-            result = await session.execute(stmt)
-            currency = result.scalar_one_or_none()
-            if currency is None:
-                raise CurrencyNotFound(f"Currency {currency_id} not found")
+            try:
+                # 获取货币配置
+                stmt = select(CurrencyMeta).where(CurrencyMeta.id == currency_id)
+                result = await session.execute(stmt)
+                currency = result.scalar_one_or_none()
+                if currency is None:
+                    raise CurrencyNotFound(f"Currency {currency_id} not found")
 
-            # 检查账户是否存在
-            stmt = (
-                select(UserAccount)
-                .where(UserAccount.uni_id == get_uni_id(user_id, currency_id))
-                .with_for_update()
-            )
-            result = await session.execute(stmt)
-            account = result.scalar_one_or_none()
+                # 检查账户是否存在
+                stmt = (
+                    select(UserAccount)
+                    .where(UserAccount.uni_id == get_uni_id(user_id, currency_id))
+                    .with_for_update()
+                )
+                result = await session.execute(stmt)
+                account = result.scalar_one_or_none()
 
-            if account is not None:
+                if account is not None:
+                    session.add(account)
+                    return account
+
+                session.add(currency)
+                account = UserAccount(
+                    uni_id=get_uni_id(user_id, currency_id),
+                    id=user_id,
+                    currency_id=currency_id,
+                    balance=currency.default_balance,
+                    last_updated=datetime.now(timezone.utc),
+                )
                 session.add(account)
+                await session.commit()
                 return account
-
-            session.add(currency)
-            account = UserAccount(
-                uni_id=get_uni_id(user_id, currency_id),
-                id=user_id,
-                currency_id=currency_id,
-                balance=currency.default_balance,
-                last_updated=datetime.now(timezone.utc),
-            )
-            session.add(account)
-            await session.commit()
-
-            stmt = select(UserAccount).where(
-                UserAccount.uni_id == get_uni_id(user_id, currency_id)
-            )
-            result = await session.execute(stmt)
-            account = result.scalar_one()
-            session.add(account)
-            return account
+            except Exception:
+                await session.rollback()
+                raise
 
     async def set_account_frozen(
         self,
@@ -220,41 +221,46 @@ class AccountRepository:
     ) -> tuple[float, float]:
         async with self.session as session:
             """更新余额"""
+            try:
+                # 获取账户
+                account = (
+                    await session.execute(
+                        select(UserAccount)
+                        .where(
+                            UserAccount.uni_id == get_uni_id(account_id, currency_id)
+                        )
+                        .with_for_update()
+                    )
+                ).scalar_one_or_none()
 
-            # 获取账户
-            account = (
-                await session.execute(
-                    select(UserAccount)
-                    .where(UserAccount.uni_id == get_uni_id(account_id, currency_id))
-                    .with_for_update()
-                )
-            ).scalar_one_or_none()
+                if account is None:
+                    raise AccountNotFound("Account not found")
+                session.add(account)
 
-            if account is None:
-                raise AccountNotFound("Account not found")
-            session.add(account)
+                if account.frozen:
+                    raise AccountFrozen(
+                        f"Account {account_id} on currency {currency_id} is frozen"
+                    )
 
-            if account.frozen:
-                raise AccountFrozen(
-                    f"Account {account_id} on currency {currency_id} is frozen"
-                )
+                # 获取货币规则
+                currency = await session.get(CurrencyMeta, account.currency_id)
+                session.add(currency)
 
-            # 获取货币规则
-            currency = await session.get(CurrencyMeta, account.currency_id)
-            session.add(currency)
+                # 负余额检查
+                if amount < 0 and not getattr(currency, "allow_negative", False):
+                    raise TransactionException("Insufficient funds")
 
-            # 负余额检查
-            if amount < 0 and not getattr(currency, "allow_negative", False):
-                raise TransactionException("Insufficient funds")
+                # 记录原始余额
+                old_balance = account.balance
 
-            # 记录原始余额
-            old_balance = account.balance
+                # 更新余额
+                account.balance = amount
+                await session.commit()
 
-            # 更新余额
-            account.balance = amount
-            await session.commit()
-
-            return old_balance, amount
+                return old_balance, amount
+            except Exception:
+                await session.rollback()
+                raise
 
     async def list_accounts(
         self, currency_id: str | None = None
