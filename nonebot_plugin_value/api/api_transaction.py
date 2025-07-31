@@ -36,17 +36,7 @@ async def get_transaction_history_by_time_range(
             limit,
         )
         result_list: list[TransactionData] = [
-            TransactionData(
-                id=transaction.id,
-                account_id=transaction.account_id,
-                currency_id=transaction.currency_id,
-                amount=transaction.amount,
-                action=transaction.action,
-                source=transaction.source,
-                balance_before=transaction.balance_before,
-                balance_after=transaction.balance_after,
-                timestamp=transaction.timestamp,
-            )
+            TransactionData.model_validate(transaction, from_attributes=True)
             for transaction in data
         ]
         return result_list
@@ -67,17 +57,7 @@ async def get_transaction_history(
     """
     async with get_session() as session:
         return [
-            TransactionData(
-                id=transaction.id,
-                account_id=transaction.account_id,
-                currency_id=transaction.currency_id,
-                amount=transaction.amount,
-                action=transaction.action,
-                source=transaction.source,
-                balance_before=transaction.balance_before,
-                balance_after=transaction.balance_after,
-                timestamp=transaction.timestamp,
-            )
+            TransactionData.model_validate(transaction, from_attributes=True)
             for transaction in await _transaction_history(
                 account_id,
                 session,

@@ -21,12 +21,7 @@ async def update_currency(currency_data: CurrencyData) -> CurrencyData:
     """
     async with get_session() as session:
         currency = await _update_currency(currency_data, session)
-        return CurrencyData(
-            id=currency.id,
-            allow_negative=currency.allow_negative,
-            display_name=currency.display_name,
-            symbol=currency.symbol,
-        )
+        return CurrencyData.model_validate(currency, from_attributes=True)
 
 
 async def remove_currency(currency_id: str) -> None:
@@ -51,13 +46,7 @@ async def list_currencies() -> list[CurrencyData]:
     async with get_session() as session:
         currencies = await _currencies(session)
         return [
-            CurrencyData(
-                id=currency.id,
-                allow_negative=currency.allow_negative,
-                display_name=currency.display_name,
-                symbol=currency.symbol,
-                default_balance=currency.default_balance,
-            )
+            CurrencyData.model_validate(currency, from_attributes=True)
             for currency in currencies
         ]
 
@@ -75,13 +64,7 @@ async def get_currency(currency_id: str) -> CurrencyData | None:
         currency = await _g_currency(currency_id, session)
         if currency is None:
             return None
-        return CurrencyData(
-            id=currency.id,
-            allow_negative=currency.allow_negative,
-            display_name=currency.display_name,
-            symbol=currency.symbol,
-            default_balance=currency.default_balance,
-        )
+        return CurrencyData.model_validate(currency, from_attributes=True)
 
 
 async def get_default_currency() -> CurrencyData:
@@ -92,13 +75,7 @@ async def get_default_currency() -> CurrencyData:
     """
     async with get_session() as session:
         currency = await _default_currency(session)
-        return CurrencyData(
-            id=currency.id,
-            allow_negative=currency.allow_negative,
-            display_name=currency.display_name,
-            symbol=currency.symbol,
-            default_balance=currency.default_balance,
-        )
+        return CurrencyData.model_validate(currency, from_attributes=True)
 
 
 async def create_currency(currency_data: CurrencyData) -> None:
@@ -115,7 +92,7 @@ async def create_currency(currency_data: CurrencyData) -> None:
 
 
 async def get_or_create_currency(currency_data: CurrencyData) -> CurrencyData:
-    """获取或者创建货币
+    """获取或者创建货币（一般在初始化时使用）
 
     Args:
         currency_data (CurrencyData): 货币数据
@@ -125,10 +102,4 @@ async def get_or_create_currency(currency_data: CurrencyData) -> CurrencyData:
     """
     async with get_session() as session:
         currency, _ = await _get_or_create_currency(currency_data, session)
-        return CurrencyData(
-            id=currency.id,
-            allow_negative=currency.allow_negative,
-            display_name=currency.display_name,
-            symbol=currency.symbol,
-            default_balance=currency.default_balance,
-        )
+        return CurrencyData.model_validate(currency)

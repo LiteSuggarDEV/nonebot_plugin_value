@@ -15,6 +15,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import MappedColumn, mapped_column, relationship
 
 from ..uuid_lib import NAMESPACE_VALUE
+from .utils import OnDeleteEnum
 
 
 class UserAccount(Model):
@@ -28,12 +29,14 @@ class UserAccount(Model):
     # 用户ID
     id: MappedColumn[str] = mapped_column(String(255))
 
-    # 账户是否冻结（等待实现）
+    # 账户是否冻结
     frozen: MappedColumn[bool] = mapped_column(Boolean, default=False)
 
     # 货币外键
     currency_id: MappedColumn[str] = mapped_column(
-        String(255), ForeignKey("currency_meta.id", ondelete="CASCADE"), nullable=False
+        String(255),
+        ForeignKey("currency_meta.id", ondelete=OnDeleteEnum.CASCADE.value),
+        nullable=False,
     )
 
     # 账户余额
@@ -75,12 +78,16 @@ class Transaction(Model):
 
     # 账户外键
     account_id: MappedColumn[str] = mapped_column(
-        String(255), ForeignKey("user_accounts.id", ondelete="RESTRICT"), nullable=False
+        String(255),
+        ForeignKey("user_accounts.id", ondelete=OnDeleteEnum.CASCADE.value),
+        nullable=False,
     )
 
     # 货币外键
     currency_id: MappedColumn[str] = mapped_column(
-        String(255), ForeignKey("currency_meta.id", ondelete="RESTRICT"), nullable=False
+        String(255),
+        ForeignKey("currency_meta.id", ondelete=OnDeleteEnum.CASCADE.value),
+        nullable=False,
     )
 
     # 交易金额

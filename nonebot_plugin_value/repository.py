@@ -3,8 +3,9 @@ from collections.abc import Sequence
 from datetime import datetime, timezone
 from uuid import uuid1, uuid5
 
+from nonebot import logger
 from nonebot_plugin_orm import AsyncSession
-from sqlalchemy import insert, select, update
+from sqlalchemy import delete, insert, select, update
 
 from .exception import (
     AccountFrozen,
@@ -101,18 +102,18 @@ class CurrencyRepository:
                     .where(CurrencyMeta.id == currency_id)
                     .with_for_update()
                 )
-            ).scalar_one_or_none()
-            if not currency:
+            ).scalar()
+            if currency is None:
                 raise CurrencyNotFound(f"Currency {currency_id} not found")
-            await session.delete(currency)
-            users = await session.execute(
-                select(UserAccount)
-                .where(UserAccount.currency_id == currency_id)
-                .with_for_update()
-            )
-            for user in users:
-                await session.delete(user)
-            await session.commit()
+            try:
+                logger.warning(f"Deleting currency {currency_id}")
+                stmt = delete(CurrencyMeta).where(CurrencyMeta.id == currency_id)
+                await session.execute(stmt)
+            except Exception:
+                await session.rollback()
+                raise
+            else:
+                await session.commit()
 
 
 class AccountRepository:
@@ -173,21 +174,31 @@ class AccountRepository:
     ) -> None:
         """设置账户冻结状态"""
         async with self.session as session:
-            account = await self.get_or_create_account(account_id, currency_id)
-            session.add(account)
-            account.frozen = frozen
-            await session.commit()
+            try:
+                account = await self.get_or_create_account(account_id, currency_id)
+                session.add(account)
+                account.frozen = frozen
+            except Exception:
+                await session.rollback()
+                raise
+            else:
+                await session.commit()
 
     async def set_frozen_all(self, account_id: str, frozen: bool):
         async with self.session as session:
-            result = await session.execute(
-                select(UserAccount).where(UserAccount.id == account_id)
-            )
-            accounts = result.scalars().all()
-            session.add_all(accounts)
-            for account in accounts:
-                account.frozen = frozen
-            await session.commit()
+            try:
+                result = await session.execute(
+                    select(UserAccount).where(UserAccount.id == account_id)
+                )
+                accounts = result.scalars().all()
+                session.add_all(accounts)
+                for account in accounts:
+                    account.frozen = frozen
+            except Exception as e:
+                await session.rollback()
+                raise e
+            else:
+                await session.commit()
 
     async def is_account_frozen(
         self,
@@ -266,24 +277,31 @@ class AccountRepository:
     async def remove_account(self, account_id: str, currency_id: str | None = None):
         """删除账户"""
         async with self.session as session:
-            if not currency_id:
-                stmt = (
-                    select(UserAccount)
-                    .where(UserAccount.id == account_id)
-                    .with_for_update()
-                )
+            try:
+                if not currency_id:
+                    stmt = (
+                        select(UserAccount)
+                        .where(UserAccount.id == account_id)
+                        .with_for_update()
+                    )
+                else:
+                    stmt = (
+                        select(UserAccount)
+                        .where(
+                            UserAccount.uni_id == get_uni_id(account_id, currency_id)
+                        )
+                        .with_for_update()
+                    )
+                accounts = (await session.execute(stmt)).scalars().all()
+                if not accounts:
+                    raise AccountNotFound("Account not found")
+                for account in accounts:
+                    stmt = delete(UserAccount).where(UserAccount.id == account.id)
+                    await session.execute(stmt)
+            except Exception:
+                await session.rollback()
             else:
-                stmt = (
-                    select(UserAccount)
-                    .where(UserAccount.uni_id == get_uni_id(account_id, currency_id))
-                    .with_for_update()
-                )
-            accounts = (await session.execute(stmt)).scalars().all()
-            if not accounts:
-                raise AccountNotFound("Account not found")
-            for account in accounts:
-                await session.delete(account)
-            await session.commit()
+                await session.commit()
 
 
 class TransactionRepository:
@@ -374,14 +392,20 @@ class TransactionRepository:
     async def remove_transaction(self, transaction_id: str) -> None:
         """删除交易记录"""
         async with self.session as session:
-            transaction = (
-                await session.execute(
-                    select(Transaction)
-                    .where(Transaction.id == transaction_id)
-                    .with_for_update()
-                )
-            ).scalar_one_or_none()
-            if not transaction:
-                raise TransactionNotFound("Transaction not found")
-            await session.delete(transaction)
-            await session.commit()
+            try:
+                transaction = (
+                    await session.execute(
+                        select(Transaction)
+                        .where(Transaction.id == transaction_id)
+                        .with_for_update()
+                    )
+                ).scalar()
+                if not transaction:
+                    raise TransactionNotFound("Transaction not found")
+                stmt = delete(Transaction).where(Transaction.id == transaction_id)
+                await session.execute(stmt)
+            except Exception:
+                await session.rollback()
+                raise
+            else:
+                await session.commit()
