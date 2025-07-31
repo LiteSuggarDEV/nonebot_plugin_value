@@ -113,9 +113,7 @@ async def batch_del_balance(
     data_list: list[UserAccountData] = []
     if currency_id is None:
         currency_id = (await _get_default()).id
-    await _batch_del(
-        updates, currency_id, source, fail_then_rollback=True, return_all_on_fail=True
-    )
+    await _batch_del(updates, currency_id, source, return_all_on_fail=True)
     for user_id, _ in updates:
         data_list.append(await get_or_create_account(user_id, currency_id))
     return data_list
@@ -139,9 +137,7 @@ async def batch_add_balance(
     data_list: list[UserAccountData] = []
     if currency_id is None:
         currency_id = (await _get_default()).id
-    await _batch_add(
-        updates, currency_id, source, fail_then_rollback=True, return_all_on_fail=True
-    )
+    await _batch_add(updates, currency_id, source, return_all_on_fail=True)
     for user_id, _ in updates:
         data_list.append(await get_or_create_account(user_id, currency_id))
     return data_list

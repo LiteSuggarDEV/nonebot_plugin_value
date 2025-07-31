@@ -5,7 +5,7 @@ from nonebot_plugin_orm import AsyncSession, get_session
 
 from ..action_type import Method
 from ..hook.context import TransactionComplete, TransactionContext
-from ..hook.exception import CancelAction
+from ..hook.exception import CancelAction, DataUpdate
 from ..hook.hooks_manager import HooksManager
 from ..hook.hooks_type import HooksType
 from ..models.balance import UserAccount
@@ -74,7 +74,6 @@ async def del_account(
             await AccountRepository(session).remove_account(account_id, currency_id)
             return True
         except Exception:
-            await session.rollback()
             if fail_then_throw:
                 raise
             return False
@@ -124,7 +123,6 @@ async def batch_del_balance(
     currency_id: str,
     source: str = "batch_update",
     session: AsyncSession | None = None,
-    fail_then_rollback: bool = True,
     return_all_on_fail: bool = False,
 ) -> list[ActionResult]:
     """批量减少账户余额
@@ -134,7 +132,6 @@ async def batch_del_balance(
         currency_id (str): 货币ID
         source (str, optional): 源. Defaults to "batch_update".
         session (AsyncSession | None, optional): 异步Session. Defaults to None.
-        fail_then_rollback (bool, optional): 失败时是否回滚. Defaults to True.
         return_all_on_fail (bool, optional): 批量操作失败时是否仍然返回所有结果. Defaults to False.
 
     Returns:
@@ -144,22 +141,16 @@ async def batch_del_balance(
         session = get_session()
     result_list: list[ActionResult] = []
     async with session:
-        try:
-            for uid, amount in updates:
-                data: ActionResult = await del_balance(
-                    uid, currency_id, amount, source, session
-                )
-                result_list.append(data)
+        for uid, amount in updates:
+            data: ActionResult = await del_balance(
+                uid, currency_id, amount, source, session
+            )
+            result_list.append(data)
 
-            if not all(r.success for r in result_list):
-                if fail_then_rollback:
-                    await session.rollback()
-                return [] if not return_all_on_fail else result_list
-            await session.commit()
-            return result_list
-        except Exception:
-            await session.rollback()
-            raise
+        if not all(r.success for r in result_list):
+            return [] if not return_all_on_fail else result_list
+        await session.commit()
+        return result_list
 
 
 async def del_balance(
@@ -188,61 +179,57 @@ async def del_balance(
     async with session:
         account_repo = AccountRepository(session)
         tx_repo = TransactionRepository(session)
-        has_commit: bool = False
+
+        account = await account_repo.get_or_create_account(user_id, currency_id)
+        session.add(account)
+        balance_before = account.balance
+        account_id = account.id
         try:
-            account = await account_repo.get_or_create_account(user_id, currency_id)
-            session.add(account)
-            balance_before = account.balance
-            account_id = account.id
-            balance_after = balance_before - amount
-            try:
-                await HooksManager().run_hooks(
-                    HooksType.pre(),
-                    TransactionContext(
-                        user_id=user_id,
-                        currency=currency_id,
-                        amount=amount,
-                        action_type=Method.withdraw(),
-                    ),
-                )
-            except CancelAction as e:
-                logger.warning(f"取消了交易：{e.message}")
-                return TransferResult(
-                    success=True,
-                    message=f"取消了交易：{e.message}",
-                )
-            has_commit = True
-            await account_repo.update_balance(
-                account_id,  # 使用提前获取的account_id
-                balance_after,
-                currency_id,
+            await HooksManager().run_hooks(
+                HooksType.pre(),
+                TransactionContext(
+                    user_id=user_id,
+                    currency=currency_id,
+                    amount=amount,
+                    action_type=Method.withdraw(),
+                ),
             )
-            await tx_repo.create_transaction(
-                account_id,  # 使用提前获取的account_id
-                currency_id,
-                amount,
-                Method.transfer_out(),
-                source,
-                balance_before,
-                balance_after,
+        except DataUpdate as du:
+            amount = du.amount
+        except CancelAction as e:
+            logger.warning(f"取消了交易：{e.message}")
+            return TransferResult(
+                success=True,
+                message=f"取消了交易：{e.message}",
             )
-            try:
-                await HooksManager().run_hooks(
-                    HooksType.post(),
-                    TransactionComplete(
-                        message="交易完成",
-                        source_balance=balance_before,
-                        new_balance=balance_after,
-                        timestamp=datetime.now().timestamp(),
-                        user_id=user_id,
-                    ),
-                )
-            finally:
-                return ActionResult(success=True, message="操作成功")
-        except Exception:
-            if has_commit:
-                await session.rollback()
-            raise
+        balance_after = balance_before - amount
+        await account_repo.update_balance(
+            account_id,  # 使用提前获取的account_id
+            balance_after,
+            currency_id,
+        )
+        await tx_repo.create_transaction(
+            account_id,  # 使用提前获取的account_id
+            currency_id,
+            amount,
+            Method.transfer_out(),
+            source,
+            balance_before,
+            balance_after,
+        )
+        try:
+            await HooksManager().run_hooks(
+                HooksType.post(),
+                TransactionComplete(
+                    message="交易完成",
+                    source_balance=balance_before,
+                    new_balance=balance_after,
+                    timestamp=datetime.now().timestamp(),
+                    user_id=user_id,
+                ),
+            )
+        finally:
+            return ActionResult(success=True, message="操作成功")
 
 
 async def batch_add_balance(
@@ -250,7 +237,6 @@ async def batch_add_balance(
     currency_id: str,
     source: str = "batch_update",
     session: AsyncSession | None = None,
-    fail_then_rollback: bool = True,
     return_all_on_fail: bool = False,
 ) -> list[ActionResult]:
     """批量添加余额
@@ -259,7 +245,6 @@ async def batch_add_balance(
         updates (list[tuple[str, float]]): 元组列表 [(用户ID, 金额变化)]
         source (str, optional): 来源. Defaults to "batch_update".
         session (AsyncSession | None, optional): 会话. Defaults to None.
-        fail_then_rollback (bool, optional): 失败时是否回滚. Defaults to True.
         return_all_on_fail (bool, optional): 返回所有结果即使失败时. Defaults to False.
 
     Returns:
@@ -269,21 +254,15 @@ async def batch_add_balance(
         session = get_session()
     result_list: list[ActionResult] = []
     async with session:
-        try:
-            for uid, amount in updates:
-                data: ActionResult = await add_balance(
-                    uid, currency_id, amount, source, session
-                )
-                result_list.append(data)
-            if not all(r.success for r in result_list):
-                if fail_then_rollback:
-                    await session.rollback()
-                return [] if not return_all_on_fail else result_list
-            await session.commit()
-            return result_list
-        except Exception:
-            await session.rollback()
-            raise
+        for uid, amount in updates:
+            data: ActionResult = await add_balance(
+                uid, currency_id, amount, source, session
+            )
+            result_list.append(data)
+        if not all(r.success for r in result_list):
+            return [] if not return_all_on_fail else result_list
+        await session.commit()
+        return result_list
 
 
 async def add_balance(
@@ -314,68 +293,61 @@ async def add_balance(
             )
         account_repo = AccountRepository(session)
         tx_repo = TransactionRepository(session)
-        has_commit: bool = False
-        try:
-            account = await account_repo.get_or_create_account(user_id, currency_id)
-            session.add(account)
-            account_id = account.id
-            balance_before = account.balance
-            try:
-                await HooksManager().run_hooks(
-                    HooksType.pre(),
-                    TransactionContext(
-                        user_id=user_id,
-                        currency=currency_id,
-                        amount=amount,
-                        action_type=Method.deposit(),
-                    ),
-                )
-            except CancelAction as e:
-                logger.warning(f"取消了交易：{e.message}")
-                return ActionResult(success=True, message=f"取消了交易：{e.message}")
-            has_commit = True
-            balance_after = balance_before + amount
-            await tx_repo.create_transaction(
-                account_id,
-                currency_id,
-                amount,
-                Method.deposit(),
-                source,
-                balance_before,
-                balance_after,
-            )
-            # 在更新余额前重新获取账户对象以避免DetachedInstanceError
-            updated_account = await account_repo.get_or_create_account(
-                user_id, currency_id
-            )
-            await account_repo.update_balance(
-                updated_account.id,
-                balance_after,
-                currency_id,
-            )
-            if arg_session is None:
-                await session.commit()
-            try:
-                await HooksManager().run_hooks(
-                    HooksType.post(),
-                    TransactionComplete(
-                        message="交易完成",
-                        source_balance=balance_before,
-                        new_balance=balance_after,
-                        timestamp=datetime.now().timestamp(),
-                        user_id=user_id,
-                    ),
-                )
-            finally:
-                return ActionResult(
-                    message="操作成功",
-                    success=True,
-                )
 
-        except Exception:
-            if has_commit:
-                await session.rollback()
-            raise
+        account = await account_repo.get_or_create_account(user_id, currency_id)
+        session.add(account)
+        account_id = account.id
+        balance_before = account.balance
+        try:
+            await HooksManager().run_hooks(
+                HooksType.pre(),
+                TransactionContext(
+                    user_id=user_id,
+                    currency=currency_id,
+                    amount=amount,
+                    action_type=Method.deposit(),
+                ),
+            )
+        except DataUpdate as du:
+            amount = du.amount
+        except CancelAction as e:
+            logger.warning(f"取消了交易：{e.message}")
+            return ActionResult(success=True, message=f"取消了交易：{e.message}")
+        balance_after = balance_before + amount
+        await tx_repo.create_transaction(
+            account_id,
+            currency_id,
+            amount,
+            Method.deposit(),
+            source,
+            balance_before,
+            balance_after,
+        )
+        # 在更新余额前重新获取账户对象以避免DetachedInstanceError
+        updated_account = await account_repo.get_or_create_account(user_id, currency_id)
+        await account_repo.update_balance(
+            updated_account.id,
+            balance_after,
+            currency_id,
+        )
+        if arg_session is None:
+            await session.commit()
+        try:
+            await HooksManager().run_hooks(
+                HooksType.post(),
+                TransactionComplete(
+                    message="交易完成",
+                    source_balance=balance_before,
+                    new_balance=balance_after,
+                    timestamp=datetime.now().timestamp(),
+                    user_id=user_id,
+                ),
+            )
+        finally:
+            return ActionResult(
+                message="操作成功",
+                success=True,
+            )
 
 
 async def transfer_funds(
@@ -437,6 +409,9 @@ async def transfer_funds(
                         action_type=Method.transfer_out(),
                     ),
                 )
+            except DataUpdate as du:
+                amount = abs(du.amount)
+            try:
                 await HooksManager().run_hooks(
                     HooksType.pre(),
                     TransactionContext(
@@ -446,74 +421,71 @@ async def transfer_funds(
                         action_type=Method.transfer_in(),
                     ),
                 )
-            except CancelAction as e:
-                logger.info(f"取消了交易：{e.message}")
-                return TransferResult(success=True, message=f"取消了交易：{e.message}")
-            from_balance_before, from_balance_after = await account_repo.update_balance(
-                from_account_id,
-                -amount,
-                currency_id,
-            )
-            to_balance_before, to_balance_after = await account_repo.update_balance(
-                to_account_id,
-                amount,
-                currency_id,
-            )
-            timestamp = datetime.now(timezone.utc)
-            await tx_repo.create_transaction(
-                account_id=from_account_id,
-                currency_id=currency_id,
-                amount=-amount,
-                action="TRANSFER_OUT",
-                source=source,
-                balance_before=from_balance_before,
-                balance_after=from_balance_after,
-                timestamp=timestamp,
-            )
-            await tx_repo.create_transaction(
-                account_id=to_account_id,
-                currency_id=currency_id,
-                amount=amount,
-                action="TRANSFER_IN",
-                source=source,
-                balance_before=to_balance_before,
-                balance_after=to_balance_after,
-                timestamp=timestamp,
-            )
+            except DataUpdate as du:
+                amount = abs(du.amount)
+        except CancelAction as e:
+            logger.info(f"取消了交易：{e.message}")
+            return TransferResult(success=True, message=f"取消了交易：{e.message}")
+        from_balance_before, from_balance_after = await account_repo.update_balance(
+            from_account_id,
+            -amount,
+            currency_id,
+        )
+        to_balance_before, to_balance_after = await account_repo.update_balance(
+            to_account_id,
+            amount,
+            currency_id,
+        )
+        timestamp = datetime.now(timezone.utc)
+        await tx_repo.create_transaction(
+            account_id=from_account_id,
+            currency_id=currency_id,
+            amount=-amount,
+            action="TRANSFER_OUT",
+            source=source,
+            balance_before=from_balance_before,
+            balance_after=from_balance_after,
+            timestamp=timestamp,
+        )
+        await tx_repo.create_transaction(
+            account_id=to_account_id,
+            currency_id=currency_id,
+            amount=amount,
+            action="TRANSFER_IN",
+            source=source,
+            balance_before=to_balance_before,
+            balance_after=to_balance_after,
+            timestamp=timestamp,
+        )
 
-            # 提交事务
-            if arg_session is None:
-                await session.commit()
-            try:
-                await HooksManager().run_hooks(
-                    HooksType.post(),
-                    TransactionComplete(
-                        message="交易完成(转账)",
-                        source_balance=from_balance_before,
-                        new_balance=from_balance_after,
-                        timestamp=datetime.now().timestamp(),
-                        user_id=fromuser_id,
-                    ),
-                )
-                await HooksManager().run_hooks(
-                    HooksType.post(),
-                    TransactionComplete(
-                        message="交易完成(转账)",
-                        source_balance=to_balance_before,
-                        new_balance=to_balance_after,
-                        timestamp=datetime.now().timestamp(),
-                        user_id=touser_id,
-                    ),
-                )
-            finally:
-                return TransferResult(
-                    success=True,
-                    from_balance=from_balance_after,
-                    to_balance=to_balance_after,
-                    message=f"交易完成(转账) 从{fromuser_id}到{touser_id}",
-                )
-
-        except Exception:
-            # 回滚事务
-            await session.rollback()
-            raise
+        # 提交事务
+        if arg_session is None:
+            await session.commit()
+        try:
+            await HooksManager().run_hooks(
+                HooksType.post(),
+                TransactionComplete(
+                    message="交易完成(转账)",
+                    source_balance=from_balance_before,
+                    new_balance=from_balance_after,
+                    timestamp=datetime.now().timestamp(),
+                    user_id=fromuser_id,
+                ),
+            )
+            await HooksManager().run_hooks(
+                HooksType.post(),
+                TransactionComplete(
+                    message="交易完成(转账)",
+                    source_balance=to_balance_before,
+                    new_balance=to_balance_after,
+                    timestamp=datetime.now().timestamp(),
+                    user_id=touser_id,
+                ),
+            )
+        finally:
+            return TransferResult(
+                success=True,
+                from_balance=from_balance_after,
+                to_balance=to_balance_after,
+                message=f"交易完成(转账) 从{fromuser_id}到{touser_id}",
+            )

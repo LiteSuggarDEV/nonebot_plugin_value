@@ -1,7 +1,7 @@
 # 事件钩子上下文
 from pydantic import BaseModel, Field
 
-from .exception import CancelAction
+from .exception import CancelAction, DataUpdate
 
 
 class TransactionContext(BaseModel):
@@ -18,6 +18,9 @@ class TransactionContext(BaseModel):
 
     def cancel(self, reason: str = ""):
         raise CancelAction(reason)
+
+    def commit_update(self):
+        raise DataUpdate(amount=self.amount)
 
 
 class TransactionComplete(BaseModel):
