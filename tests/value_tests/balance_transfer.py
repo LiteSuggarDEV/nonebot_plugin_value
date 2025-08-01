@@ -10,6 +10,7 @@ async def test_transfer(app: App):
         transfer_funds,
     )
     from nonebot_plugin_value.uuid_lib import to_uuid
+
     u1 = to_uuid("u1")
     u2 = to_uuid("u2")
     await get_or_create_account(u1)

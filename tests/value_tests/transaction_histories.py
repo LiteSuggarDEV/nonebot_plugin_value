@@ -11,6 +11,6 @@ async def test_transactions(app: App):
     account = await get_or_create_account(to_uuid("123"))
     for _ in range(20):
         await add_balance(to_uuid("123"), 1)
-    transactions = await get_transaction_history(account.id,30)
+    transactions = await get_transaction_history(account.id, 30)
     assert len(transactions) >= 20
     assert transactions[0].amount == 1

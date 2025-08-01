@@ -42,4 +42,3 @@ async def test_batch_operations(app: App):
     await list_accounts()
     assert all([await del_account(uid) for uid in ac_uid])
     await list_currencies()
-
