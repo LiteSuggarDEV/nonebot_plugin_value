@@ -149,6 +149,7 @@ async def batch_del_balance(
 
         if not all(r.success for r in result_list):
             return [] if not return_all_on_fail else result_list
+        await session.commit()
         return result_list
 
 
@@ -260,6 +261,7 @@ async def batch_add_balance(
             result_list.append(data)
         if not all(r.success for r in result_list):
             return [] if not return_all_on_fail else result_list
+        await session.commit()
         return result_list
 
 
@@ -321,12 +323,15 @@ async def add_balance(
             balance_before,
             balance_after,
         )
-        await session.refresh(account)
+        # 在更新余额前重新获取账户对象以避免DetachedInstanceError
+        updated_account = await account_repo.get_or_create_account(user_id, currency_id)
         await account_repo.update_balance(
-            account.id,
+            updated_account.id,
             balance_after,
             currency_id,
         )
+        if arg_session is None:
+            await session.commit()
         try:
             await HooksManager().run_hooks(
                 HooksType.post(),
@@ -452,6 +457,10 @@ async def transfer_funds(
             balance_after=to_balance_after,
             timestamp=timestamp,
         )
+
+        # 提交事务
+        if arg_session is None:
+            await session.commit()
         try:
             await HooksManager().run_hooks(
                 HooksType.post(),

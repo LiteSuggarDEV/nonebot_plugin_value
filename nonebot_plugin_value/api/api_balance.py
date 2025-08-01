@@ -92,7 +92,6 @@ async def get_or_create_account(
         currency_id = (await _get_default()).id
     async with get_session() as session:
         data = await _go_account(user_id, currency_id, session)
-        session.add(data)
         return UserAccountData.model_validate(data, from_attributes=True)
 
 
