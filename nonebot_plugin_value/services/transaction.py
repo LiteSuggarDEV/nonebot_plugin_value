@@ -72,6 +72,7 @@ async def remove_transaction(
             await TransactionRepository(session).remove_transaction(transaction_id)
             return True
         except Exception:
+            await session.rollback()
             if fail_then_throw:
                 raise
             return False
