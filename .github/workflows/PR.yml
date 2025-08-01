@@ -48,6 +48,9 @@ jobs:
 
       - name: Check database
         run: nb orm upgrade
+      
+      - name: Test
+        run: uv run pytest ./tests/value_tests/*
 
       - name: Build package
         run: uv build  # 生成构建产物到dist目录

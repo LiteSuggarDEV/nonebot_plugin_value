@@ -12,6 +12,7 @@ dependencies = [
     "nonebot-plugin-localstore>=0.7.4",
     "nonebot-plugin-orm>=0.8.2",
     "nonebot2>=2.4.2",
+
     "sqlalchemy>=2.0.41",
 ]
 
@@ -25,6 +26,8 @@ dev-dependencies = [
     "aiosqlite>=0.19.0",
     "aiomysql>=0.2.0",
     "nonebot2[fastapi]>=2.4.2",
+    "nonebug>=0.4.3",
+    "pytest-asyncio>=1.1.0",
 ]
 
 [tool.uv.pip]
@@ -63,6 +66,10 @@ ignore = [
 typeCheckingMode = "strict"
 
 # Nonebot Test
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
 
 [tool.nonebot]
 plugins = ["nonebot_plugin_value"]

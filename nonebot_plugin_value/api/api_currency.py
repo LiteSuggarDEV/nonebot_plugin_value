@@ -29,9 +29,6 @@ async def remove_currency(currency_id: str) -> None:
 
     Args:
         currency_id (str): 货币唯一ID
-
-    Returns:
-        bool: 是否删除成功
     """
 
     await _remove_currency(currency_id)

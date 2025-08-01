@@ -6,7 +6,6 @@ from uuid import uuid1, uuid5
 from nonebot import logger
 from nonebot_plugin_orm import AsyncSession
 from sqlalchemy import delete, select, update
-from sqlalchemy.orm import joinedload
 
 from .exception import (
     AccountFrozen,
@@ -144,7 +143,6 @@ class AccountRepository:
                 # 检查账户是否存在
                 stmt = (
                     select(UserAccount)
-                    .options(joinedload(UserAccount.currency_id))
                     .where(UserAccount.uni_id == get_uni_id(user_id, currency_id))
                     .with_for_update()
                 )
