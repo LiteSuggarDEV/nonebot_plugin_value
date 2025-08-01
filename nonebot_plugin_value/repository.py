@@ -5,7 +5,8 @@ from uuid import uuid1, uuid5
 
 from nonebot import logger
 from nonebot_plugin_orm import AsyncSession
-from sqlalchemy import delete, insert, select, update
+from sqlalchemy import delete, select, update
+from sqlalchemy.orm import joinedload
 
 from .exception import (
     AccountFrozen,
@@ -40,18 +41,19 @@ class CurrencyRepository:
                 )
             )
             if (currency := stmt.scalars().first()) is not None:
+                session.add(currency)
                 return currency, True
-            await self.createcurrency(currency_data)
-            result = await self.get_currency(currency_data.id)
-            assert result is not None
+            result = await self.createcurrency(currency_data)
             return result, False
 
-    async def createcurrency(self, currency_data: CurrencyData):
+    async def createcurrency(self, currency_data: CurrencyData) -> CurrencyMeta:
         async with self.session as session:
             """创建新货币"""
-            stmt = insert(CurrencyMeta).values(**dict(currency_data))
-            await session.execute(stmt)
+            currency = CurrencyMeta(**currency_data.model_dump())
+            session.add(currency)
             await session.commit()
+            await session.refresh(currency)
+            return currency
 
     async def update_currency(self, currency_data: CurrencyData) -> CurrencyMeta:
         """更新货币信息"""
@@ -142,6 +144,7 @@ class AccountRepository:
                 # 检查账户是否存在
                 stmt = (
                     select(UserAccount)
+                    .options(joinedload(UserAccount.currency_id))
                     .where(UserAccount.uni_id == get_uni_id(user_id, currency_id))
                     .with_for_update()
                 )
@@ -162,6 +165,7 @@ class AccountRepository:
                 )
                 session.add(account)
                 await session.commit()
+                await session.refresh(account)
                 return account
             except Exception:
                 await session.rollback()
@@ -345,18 +349,9 @@ class TransactionRepository:
             )
             session.add(transaction_data)
             await session.commit()
-            stmt = (
-                select(Transaction)
-                .where(
-                    Transaction.id == uuid,
-                )
-                .with_for_update()
-            )
-            result = await session.execute(stmt)
-            transaction = result.scalar_one_or_none()
-            assert transaction, f"无法读取到交易记录[... WHERE id = {uuid} ...]!"
-            session.add(transaction)
-            return transaction
+            await session.refresh(transaction_data)
+            session.add(transaction_data)
+            return transaction_data
 
     async def get_transaction_history(
         self, account_id: str, limit: int = 100
