@@ -16,6 +16,7 @@ class CancelAction(BaseException):
     Exception raised when the user cancels an action.
     """
 
+
 class DataUpdate(Exception):
     """
     Exception raised when the data updated
