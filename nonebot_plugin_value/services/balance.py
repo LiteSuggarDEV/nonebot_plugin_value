@@ -190,7 +190,7 @@ async def del_balance(
                     user_id=user_id,
                     currency=currency_id,
                     amount=amount,
-                    action_type=Method.withdraw(),
+                    action_type=Method.WITHDRAW.value,
                 ),
             )
         except DataUpdate as du:
@@ -211,7 +211,7 @@ async def del_balance(
             account_id,  # 使用提前获取的account_id
             currency_id,
             amount,
-            Method.transfer_out(),
+            Method.TRANSFER_OUT.value,
             source,
             balance_before,
             balance_after,
@@ -303,7 +303,7 @@ async def add_balance(
                     user_id=user_id,
                     currency=currency_id,
                     amount=amount,
-                    action_type=Method.deposit(),
+                    action_type=Method.DEPOSIT.value,
                 ),
             )
         except DataUpdate as du:
@@ -316,7 +316,7 @@ async def add_balance(
             account_id,
             currency_id,
             amount,
-            Method.deposit(),
+            Method.DEPOSIT.value,
             source,
             balance_before,
             balance_after,
@@ -401,7 +401,7 @@ async def transfer_funds(
                         user_id=fromuser_id,
                         currency=currency_id,
                         amount=amount,
-                        action_type=Method.transfer_out(),
+                        action_type=Method.TRANSFER_OUT.value,
                     ),
                 )
             except DataUpdate as du:
@@ -413,7 +413,7 @@ async def transfer_funds(
                         user_id=touser_id,
                         currency=currency_id,
                         amount=amount,
-                        action_type=Method.transfer_in(),
+                        action_type=Method.TRANSFER_IN.value,
                     ),
                 )
             except DataUpdate as du:
