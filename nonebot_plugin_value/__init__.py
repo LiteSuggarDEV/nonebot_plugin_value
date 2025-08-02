@@ -4,7 +4,6 @@ from nonebot.plugin import PluginMetadata, require
 require("nonebot_plugin_orm")
 require("nonebot_plugin_localstore")
 
-from . import migrations
 from .api import api_balance, api_currency, api_transaction
 from .api.api_currency import get_or_create_currency
 from .api.depends import factory
@@ -20,7 +19,6 @@ __plugin_meta__ = PluginMetadata(
     usage="请查看API文档。",
     type="library",
     homepage="https://github.com/JohnRichard4096/nonebot_plugin_value",
-    extra={"orm_version_location": migrations},  # 迁移文件
     supported_adapters=None,
 )
 
