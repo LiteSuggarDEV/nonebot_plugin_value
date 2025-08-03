@@ -7,11 +7,11 @@ class HooksType(str, Enum):
 
     @classmethod
     def pre(cls) -> str:
-        return cls.PRE
+        return cls.PRE.value
 
     @classmethod
     def post(cls) -> str:
-        return cls.POST
+        return cls.POST.value
     @classmethod
     def methods(cls) -> list[str]:
         return [hook.value for hook in cls]
