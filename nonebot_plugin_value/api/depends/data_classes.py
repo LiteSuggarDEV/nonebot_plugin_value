@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from nonebot.adapters import Event
 
-from ...uuid_lib import to_uuid
+from ...uuid_lib import DEFAULT_CURRENCY_UUID, to_uuid
 from ..api_balance import UserAccountData, get_or_create_account
 from ..api_currency import CurrencyData, get_currency, get_default_currency
 from ..api_transaction import (
@@ -34,7 +34,7 @@ class Account:
 
     async def __call__(self, event: Event) -> UserAccountData:
         if self.currency_id is None:
-            self.currency_id = (await get_default_currency()).id
+            self.currency_id = DEFAULT_CURRENCY_UUID.hex
         return await get_or_create_account(
             to_uuid(event.get_user_id()), self.currency_id
         )
