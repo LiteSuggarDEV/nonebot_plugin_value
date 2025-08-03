@@ -1,8 +1,10 @@
 from collections.abc import Awaitable, Callable
+from typing import Any
 
 from ...pyd_models.balance_pyd import UserAccountData
 from ...pyd_models.currency_pyd import CurrencyData
 from ...pyd_models.transaction_pyd import TransactionData
+from ...uuid_lib import DEFAULT_CURRENCY_UUID
 from ..executor import AccountExecutor
 from .data_classes import Account, Currency, TransactionHistory
 
@@ -60,7 +62,8 @@ class DependsSwitch:
     @staticmethod
     def account_executor(
         *,
-        currency_id: str | None = None,
+        currency_id: str = DEFAULT_CURRENCY_UUID.hex,
+        **kwargs: Any,
     ) -> Callable[..., Awaitable[AccountExecutor]]:
         """
         Args:
@@ -69,4 +72,4 @@ class DependsSwitch:
         Returns:
             Callable[..., Awaitable[AccountExecutor]]: 账号数据操作对象
         """
-        return AccountExecutor(currency_id)
+        return AccountExecutor(currency_id=currency_id, **kwargs)

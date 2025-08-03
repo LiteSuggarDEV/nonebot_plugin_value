@@ -11,7 +11,7 @@ from ..services.balance import list_accounts as _list_accounts
 from ..services.balance import set_frozen as _set_frozen
 from ..services.balance import set_frozen_all as _set_frozen_all
 from ..services.balance import transfer_funds as _transfer
-from .api_currency import get_default_currency as _get_default
+from ..uuid_lib import DEFAULT_CURRENCY_UUID
 
 
 async def set_frozen_all(account_id: str, frozen: bool) -> None:
@@ -47,7 +47,7 @@ async def list_accounts(currency_id: str | None = None) -> list[UserAccountData]
         list[UserAccountData]: 包含用户数据的列表
     """
     if currency_id is None:
-        currency_id = (await _get_default()).id
+        currency_id = DEFAULT_CURRENCY_UUID.hex
     async with get_session() as session:
         return [
             UserAccountData(
@@ -72,7 +72,7 @@ async def del_account(user_id: str, currency_id: str | None = None) -> bool:
         bool: 是否成功
     """
     if currency_id is None:
-        currency_id = (await _get_default()).id
+        currency_id = DEFAULT_CURRENCY_UUID.hex
     return await _del_account(user_id, currency_id=currency_id)
 
 
@@ -89,7 +89,7 @@ async def get_or_create_account(
         UserAccountData: 用户数据
     """
     if currency_id is None:
-        currency_id = (await _get_default()).id
+        currency_id = DEFAULT_CURRENCY_UUID.hex
     async with get_session() as session:
         data = await _go_account(user_id, currency_id, session)
         session.add(data)
@@ -113,7 +113,7 @@ async def batch_del_balance(
     """
     data_list: list[UserAccountData] = []
     if currency_id is None:
-        currency_id = (await _get_default()).id
+        currency_id = DEFAULT_CURRENCY_UUID.hex
     await _batch_del(updates, currency_id, source, return_all_on_fail=True)
     for user_id, _ in updates:
         data_list.append(await get_or_create_account(user_id, currency_id))
@@ -137,7 +137,7 @@ async def batch_add_balance(
     """
     data_list: list[UserAccountData] = []
     if currency_id is None:
-        currency_id = (await _get_default()).id
+        currency_id = DEFAULT_CURRENCY_UUID.hex
     await _batch_add(updates, currency_id, source, return_all_on_fail=True)
     for user_id, _ in updates:
         data_list.append(await get_or_create_account(user_id, currency_id))
@@ -166,7 +166,7 @@ async def add_balance(
     """
 
     if currency_id is None:
-        currency_id = (await _get_default()).id
+        currency_id = DEFAULT_CURRENCY_UUID.hex
     data = await _a_balance(user_id, currency_id, amount, source)
     if not data.success:
         raise RuntimeError(data.message)
@@ -194,7 +194,7 @@ async def del_balance(
         UserAccountData: 用户数据
     """
     if currency_id is None:
-        currency_id = (await _get_default()).id
+        currency_id = DEFAULT_CURRENCY_UUID.hex
     data = await _d_balance(user_id, currency_id, amount, source)
     if not data.success:
         raise RuntimeError(data.message)
@@ -224,7 +224,7 @@ async def transfer_funds(
         UserAccountData: 用户账户数据
     """
     if currency_id is None:
-        currency_id = (await _get_default()).id
+        currency_id = DEFAULT_CURRENCY_UUID.hex
     if not source:
         source = f"from '{from_id}' to '{to_id}'"
     data = await _transfer(from_id, to_id, currency_id, amount, source)

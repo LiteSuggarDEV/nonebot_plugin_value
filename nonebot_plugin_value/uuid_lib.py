@@ -2,7 +2,8 @@ from uuid import UUID, uuid5
 
 # UUID namespace常量定义。
 NAMESPACE_VALUE = UUID("e6fec076-98df-4979-8618-36ad04dea39f")
-
+DEFAULT_NAME = "DEFAULT_CURRENCY_USD"
+DEFAULT_CURRENCY_UUID = uuid5(NAMESPACE_VALUE, DEFAULT_NAME)
 
 def to_uuid(s: str) -> str:
     """获取UUID

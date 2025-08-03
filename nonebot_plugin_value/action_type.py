@@ -8,7 +8,3 @@ class Method(str, Enum):
     WITHDRAW = "WITHDRAW"  # 取款
     TRANSFER_IN = "TRANSFER_IN"  # 转入（与转出同时存在）
     TRANSFER_OUT = "TRANSFER_OUT"  # 转出（与转入同时存在）
-
-    @classmethod
-    def valid_actions(cls, action: str) -> bool:
-        return action in cls.__dict__.values()

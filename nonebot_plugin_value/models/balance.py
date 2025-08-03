@@ -14,7 +14,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import MappedColumn, mapped_column, relationship
 
-from ..uuid_lib import NAMESPACE_VALUE
+from ..uuid_lib import NAMESPACE_VALUE, get_uni_id
 from .utils import OnDeleteEnum
 
 
@@ -63,7 +63,9 @@ class UserAccount(Model):
             raise ValueError("id and currency_id must be provided")
         if "uni_id" not in kwargs:
             namespace = NAMESPACE_VALUE
-            uni_id_val = uuid.uuid5(namespace, kwargs["id"] + kwargs["currency_id"])
+            uni_id_val = uuid.uuid5(
+                namespace, get_uni_id(kwargs["id"], kwargs["currency_id"])
+            )
             kwargs["id"] = uni_id_val
         super().__init__(**kwargs)
 

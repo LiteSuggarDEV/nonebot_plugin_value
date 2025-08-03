@@ -185,7 +185,7 @@ async def del_balance(
         account_id = account.id
         try:
             await HooksManager().run_hooks(
-                HooksType.pre(),
+                HooksType.PRE.value,
                 TransactionContext(
                     user_id=user_id,
                     currency=currency_id,
@@ -218,7 +218,7 @@ async def del_balance(
         )
         try:
             await HooksManager().run_hooks(
-                HooksType.post(),
+                HooksType.POST.value,
                 TransactionComplete(
                     message="交易完成",
                     source_balance=balance_before,
@@ -298,7 +298,7 @@ async def add_balance(
         balance_before = account.balance
         try:
             await HooksManager().run_hooks(
-                HooksType.pre(),
+                HooksType.PRE.value,
                 TransactionContext(
                     user_id=user_id,
                     currency=currency_id,
@@ -329,7 +329,7 @@ async def add_balance(
         )
         try:
             await HooksManager().run_hooks(
-                HooksType.post(),
+                HooksType.POST.value,
                 TransactionComplete(
                     message="交易完成",
                     source_balance=balance_before,
@@ -396,7 +396,7 @@ async def transfer_funds(
         try:
             try:
                 await HooksManager().run_hooks(
-                    HooksType.pre(),
+                    HooksType.PRE.value,
                     TransactionContext(
                         user_id=fromuser_id,
                         currency=currency_id,
@@ -408,7 +408,7 @@ async def transfer_funds(
                 amount = abs(du.amount)
             try:
                 await HooksManager().run_hooks(
-                    HooksType.pre(),
+                    HooksType.PRE.value,
                     TransactionContext(
                         user_id=touser_id,
                         currency=currency_id,
@@ -454,7 +454,7 @@ async def transfer_funds(
         )
         try:
             await HooksManager().run_hooks(
-                HooksType.post(),
+                HooksType.POST.value,
                 TransactionComplete(
                     message="交易完成(转账)",
                     source_balance=from_balance_before,
@@ -464,7 +464,7 @@ async def transfer_funds(
                 ),
             )
             await HooksManager().run_hooks(
-                HooksType.post(),
+                HooksType.POST.value,
                 TransactionComplete(
                     message="交易完成(转账)",
                     source_balance=to_balance_before,

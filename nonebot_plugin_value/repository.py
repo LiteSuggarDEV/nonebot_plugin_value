@@ -1,7 +1,7 @@
 # Repository,更加底层的数据库操作接口
 from collections.abc import Sequence
 from datetime import datetime, timezone
-from uuid import uuid1, uuid5
+from uuid import uuid1
 
 from nonebot import logger
 from nonebot_plugin_orm import AsyncSession
@@ -17,10 +17,13 @@ from .exception import (
 from .models.balance import Transaction, UserAccount
 from .models.currency import CurrencyMeta
 from .pyd_models.currency_pyd import CurrencyData
-from .uuid_lib import NAMESPACE_VALUE, get_uni_id
+from .uuid_lib import DEFAULT_CURRENCY_UUID, DEFAULT_NAME, NAMESPACE_VALUE, get_uni_id
 
-DEFAULT_NAME = "DEFAULT_CURRENCY_USD"
-DEFAULT_CURRENCY_UUID = uuid5(NAMESPACE_VALUE, DEFAULT_NAME)
+__all__ = [
+    "DEFAULT_CURRENCY_UUID",
+    "DEFAULT_NAME",
+    "NAMESPACE_VALUE",
+]
 
 
 class CurrencyRepository:
