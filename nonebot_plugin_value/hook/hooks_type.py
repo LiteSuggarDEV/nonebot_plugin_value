@@ -1,19 +1,17 @@
-class HooksType:
-    __pre = "vault_pre_transaction"
-    __post = "vault_post_transaction"
+from enum import Enum
+
+
+class HooksType(Enum, str):
+    PRE = "vault_pre_transaction"
+    POST = "vault_post_transaction"
 
     @classmethod
     def pre(cls) -> str:
-        return cls.__pre
+        return cls.PRE
 
     @classmethod
     def post(cls) -> str:
-        return cls.__post
-
-    @classmethod
-    def valid_hooks(cls, hook_name: str) -> bool:
-        return hook_name in [cls.__pre, cls.__post]
-
+        return cls.POST
     @classmethod
     def methods(cls) -> list[str]:
-        return [cls.__pre, cls.__post]
+        return [hook.value for hook in cls]
