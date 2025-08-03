@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class HooksType(Enum, str):
+class HooksType(str, Enum):
     PRE = "vault_pre_transaction"
     POST = "vault_post_transaction"
 
