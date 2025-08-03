@@ -23,7 +23,7 @@ def make_event():
 
 
 @pytest.mark.asyncio
-async def test_new_currency(app: App):
+async def test_depends(app: App):
     from nonebot_plugin_value.api.api_balance import del_account
     from nonebot_plugin_value.api.depends.factory import DependsSwitch
     from nonebot_plugin_value.uuid_lib import to_uuid
@@ -31,5 +31,5 @@ async def test_new_currency(app: App):
     uid = to_uuid("123456789")
     executor = await (DependsSwitch().account_executor())(make_event())
     await executor.add_balance(100)
-    assert await executor.get_balance() == 100
+    assert await executor.get_balance() == 100.0
     await del_account(uid)
