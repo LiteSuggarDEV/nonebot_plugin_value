@@ -1,6 +1,5 @@
 # Repository,更加底层的数据库操作接口
 from collections.abc import Sequence
-from functools import singledispatch
 
 from nonebot import logger
 from nonebot_plugin_orm import AsyncSession
@@ -19,7 +18,6 @@ class CurrencyRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    @singledispatch
     async def get_currency(self, currency_id: str) -> CurrencyMeta | None:
         """获取货币信息"""
         async with self.session as session:
