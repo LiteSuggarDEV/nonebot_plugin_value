@@ -43,8 +43,7 @@ class CurrencyRepository:
                     )
                 )
             )
-            currency_meta = result.scalar_one_or_none()
-            if currency_meta:
+            if currency_meta := result.scalar_one_or_none():
                 session.add(currency_meta)
                 return currency_meta
             return None
