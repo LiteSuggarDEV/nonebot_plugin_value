@@ -80,7 +80,7 @@ async def get_currency_by_kwargs(
         CurrencyMeta | None: 货币元数据（不存在为None）
     """
     async with session:
-        metadata = await CurrencyRepository(session).get_currency(**kwargs)
+        metadata = await CurrencyRepository(session).get_currency_by_kwargs(**kwargs)
         return metadata
 
 

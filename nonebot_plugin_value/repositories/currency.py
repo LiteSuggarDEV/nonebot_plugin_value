@@ -32,8 +32,7 @@ class CurrencyRepository:
                 return currency_meta
             return None
 
-    @get_currency.register
-    async def _(self, **kwargs:object) -> CurrencyMeta | None:
+    async def get_currency_by_kwargs(self, **kwargs: object) -> CurrencyMeta | None:
         """获取货币信息"""
         async with self.session as session:
             result = await session.execute(
