@@ -11,3 +11,4 @@ class UserAccountData(BaseData):
     currency_id: str = Field(default="")
     balance: float = Field(default=0.0)
     last_updated: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    frozen:bool = Field(default=False)

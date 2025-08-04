@@ -66,6 +66,23 @@ async def get_currency(currency_id: str, session: AsyncSession) -> CurrencyMeta 
         return metadata
 
 
+async def get_currency_by_kwargs(
+    session: AsyncSession,
+    **kwargs: object,
+) -> CurrencyMeta | None:
+    """获取一个货币的元信息
+
+    Args:
+        session (AsyncSession): SQLAlchemy的异步session
+        kwargs (object): 货币元信息字段
+
+    Returns:
+        CurrencyMeta | None: 货币元数据（不存在为None）
+    """
+    async with session:
+        return await CurrencyRepository(session).get_currency_by_kwargs(**kwargs)
+
+
 async def create_currency(currency_data: CurrencyData, session: AsyncSession) -> None:
     """创建货币
 
