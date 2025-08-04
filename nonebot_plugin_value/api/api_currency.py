@@ -1,5 +1,3 @@
-from functools import singledispatch
-
 from nonebot_plugin_orm import get_session
 
 from ..pyd_models.currency_pyd import CurrencyData
