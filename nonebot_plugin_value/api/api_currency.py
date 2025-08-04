@@ -50,7 +50,6 @@ async def list_currencies() -> list[CurrencyData]:
             for currency in currencies
         ]
 
-@singledispatch
 async def get_currency(currency_id: str) -> CurrencyData | None:
     """获取一个货币信息
 
@@ -66,8 +65,8 @@ async def get_currency(currency_id: str) -> CurrencyData | None:
             return None
         return CurrencyData.model_validate(currency, from_attributes=True)
 
-@get_currency.register
-async def _(**kwargs: object) -> CurrencyData | None:
+
+async def get_currency_by_kwargs(**kwargs: object) -> CurrencyData | None:
     """获取一个货币信息
 
     Args:
