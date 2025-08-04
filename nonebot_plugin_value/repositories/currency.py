@@ -1,6 +1,5 @@
 # Repository,更加底层的数据库操作接口
 from collections.abc import Sequence
-from functools import singledispatch
 
 from nonebot import logger
 from nonebot_plugin_orm import AsyncSession
