@@ -1,8 +1,11 @@
+from functools import singledispatch
+
 from nonebot_plugin_orm import get_session
 
 from ..pyd_models.currency_pyd import CurrencyData
 from ..services.currency import create_currency as _create_currency
 from ..services.currency import get_currency as _g_currency
+from ..services.currency import get_currency_by_kwargs as __currency_by_kwargs
 from ..services.currency import get_default_currency as _default_currency
 from ..services.currency import get_or_create_currency as _get_or_create_currency
 from ..services.currency import list_currencies as _currencies
@@ -47,7 +50,7 @@ async def list_currencies() -> list[CurrencyData]:
             for currency in currencies
         ]
 
-
+@singledispatch
 async def get_currency(currency_id: str) -> CurrencyData | None:
     """获取一个货币信息
 
@@ -59,6 +62,22 @@ async def get_currency(currency_id: str) -> CurrencyData | None:
     """
     async with get_session() as session:
         currency = await _g_currency(currency_id, session)
+        if currency is None:
+            return None
+        return CurrencyData.model_validate(currency, from_attributes=True)
+
+@get_currency.register
+async def _(**kwargs: object) -> CurrencyData | None:
+    """获取一个货币信息
+
+    Args:
+        **kwargs (object): 通过货币属性联合查询获取货币信息
+
+    Returns:
+        CurrencyData | None: 货币数据，如果不存在则返回None
+    """
+    async with get_session() as session:
+        currency = await __currency_by_kwargs(**kwargs, session=session)
         if currency is None:
             return None
         return CurrencyData.model_validate(currency, from_attributes=True)
