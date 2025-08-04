@@ -19,7 +19,6 @@ class CurrencyRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    @singledispatch
     async def get_currency(self, currency_id: str) -> CurrencyMeta | None:
         """获取货币信息"""
         async with self.session as session:
