@@ -23,6 +23,7 @@ class TransactionContext:
     def commit_update(self):
         raise DataUpdate(amount=self.amount)
 
+
 @dataclass
 class TransactionComplete:
     """Transaction complete
