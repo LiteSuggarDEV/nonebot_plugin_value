@@ -38,6 +38,7 @@
 - 🔍 时间范围审计日志: 从时间范围获取交易记录
 - 🚀 导出数据: 支持从 Json 文件导入/导出到 Json 文件
 - 🔧 依赖注入: 支持依赖注入模式调用
+- ⚡️ 高性能: LRU淘汰策略应用层缓存
 
 ### 快速开始
 
@@ -73,6 +74,12 @@ plugins = ["nonebot_plugin_value"]
 添加依赖后，请重新启动 nonebot2
 
 ### [API Docs](https://docs.suggar.top/project/value/docs/api)
+
+### 配置项
+
+```dotenv
+VALUE_PRE_BUILD_CACHE = true # 是否在启动时预构建缓存
+```
 
 ### 更新迁移
 

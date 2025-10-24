@@ -14,16 +14,12 @@ from .api_balance import (
 
 @dataclass
 class AccountExecutor:
+    # 更改说明：由于已经做了一个全局缓存，不再需要再在这里存储账户信息映射。
     currency_id: str = field(default=DEFAULT_CURRENCY_UUID.hex)
     user_id: str = field(default="")
-    data_map: dict[str, UserAccountData] = field(default_factory=lambda: {})
 
     async def __call__(self, event: Event) -> Self:
         self.user_id = to_uuid(event.get_user_id())
-        currency_id = self.currency_id
-        self.data_map[currency_id] = await get_or_create_account(
-            self.user_id, currency_id
-        )
         return self
 
     async def get_data(self, currency_id: str | None = None) -> UserAccountData:
@@ -36,15 +32,7 @@ class AccountExecutor:
             UserAccountData: 账号数据
         """
         currency_id = currency_id or self.currency_id
-        if data := self.data_map.get(
-            currency_id,
-        ):
-            return data
-        self.data_map[currency_id] = self.data_map.get(
-            currency_id,
-            await get_or_create_account(self.user_id, currency_id),
-        )
-        return self.data_map[currency_id]
+        return await get_or_create_account(self.user_id, currency_id)
 
     async def get_balance(
         self,
@@ -77,7 +65,7 @@ class AccountExecutor:
             Self: Self
         """
         currency_id = currency_id or self.currency_id
-        self.data_map[currency_id] = await add_balance(
+        await add_balance(
             self.user_id,
             amount,
             source,
@@ -102,7 +90,7 @@ class AccountExecutor:
             Self: Self
         """
         currency_id = currency_id or self.currency_id
-        self.data_map[currency_id] = await del_balance(
+        await del_balance(
             self.user_id,
             amount,
             source,

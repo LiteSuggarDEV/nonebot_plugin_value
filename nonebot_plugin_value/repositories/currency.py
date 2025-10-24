@@ -95,7 +95,6 @@ class CurrencyRepository:
                 await session.rollback()
                 raise
 
-
     async def list_currencies(self) -> Sequence[CurrencyMeta]:
         """列出所有货币"""
         async with self.session as session:
