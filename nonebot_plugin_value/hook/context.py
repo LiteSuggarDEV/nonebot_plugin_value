@@ -1,20 +1,21 @@
 # 事件钩子上下文
-from pydantic import BaseModel, Field
+from dataclasses import dataclass, field
 
 from .exception import CancelAction, DataUpdate
 
 
-class TransactionContext(BaseModel):
+@dataclass
+class TransactionContext:
     """Transaction context
 
     Args:
-        BaseModel (BaseModel): extends pydantic BaseModel
+        BaseModel : extends pydantic BaseModel
     """
 
-    user_id: str = Field(default_factory=str)  # 用户的唯一标识ID
-    currency: str = Field(default_factory=str)  # 货币种类
-    amount: float = Field(default_factory=float)  # 金额（+或-）
-    action_type: str = Field(default_factory=str)  # 操作类型（参考Method类）
+    user_id: str = field(default_factory=str)  # 用户的唯一标识ID
+    currency: str = field(default_factory=str)  # 货币种类
+    amount: float = field(default_factory=float)  # 金额（+或-）
+    action_type: str = field(default_factory=str)  # 操作类型（参考Method类）
 
     def cancel(self, reason: str = ""):
         raise CancelAction(reason)
@@ -23,15 +24,16 @@ class TransactionContext(BaseModel):
         raise DataUpdate(amount=self.amount)
 
 
-class TransactionComplete(BaseModel):
+@dataclass
+class TransactionComplete:
     """Transaction complete
 
     Args:
-        BaseModel (BaseModel): extends pydantic BaseModel
+        BaseModel : extends pydantic BaseModel
     """
 
-    message: str = Field(default="")
-    source_balance: float = Field(default_factory=float)
-    new_balance: float = Field(default_factory=float)
-    timestamp: float = Field(default_factory=float)
-    user_id: str = Field(default_factory=str)
+    message: str = field(default="")
+    source_balance: float = field(default_factory=float)
+    new_balance: float = field(default_factory=float)
+    timestamp: float = field(default_factory=float)
+    user_id: str = field(default_factory=str)
