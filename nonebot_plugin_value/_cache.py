@@ -42,8 +42,7 @@ class Cache(Generic[T]):
     async def update(self, *, data: BaseData) -> bool:
         data_id = data.uni_id if isinstance(data, UserAccountData) else data.id
         async with self._lock(data_id):
-            existing = self._cache.get(data_id)
-            if existing:
+            if existing := self._cache.get(data_id):
                 existing.model_validate(data, from_attributes=True)
                 self._cache.move_to_end(data_id)
                 return True
@@ -69,8 +68,7 @@ class Cache(Generic[T]):
     async def get_all(self) -> list[BaseData]:
         async with self._lock():
             # 返回所有缓存项的副本
-            items = list(self._cache.values())
-            return items
+            return list(self._cache.values())
 
     async def delete(self, *, data_id: str):
         async with self._lock(data_id):
