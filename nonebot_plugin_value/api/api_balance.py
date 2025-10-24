@@ -15,6 +15,7 @@ from ..services.balance import set_frozen as _set_frozen
 from ..services.balance import set_frozen_all as _set_frozen_all
 from ..services.balance import transfer_funds as _transfer
 from ..uuid_lib import DEFAULT_CURRENCY_UUID, get_uni_id
+from .api_currency import list_currencies
 
 
 async def set_frozen_all(account_id: str, frozen: bool) -> None:
@@ -25,9 +26,12 @@ async def set_frozen_all(account_id: str, frozen: bool) -> None:
         frozen (bool): 是否冻结
     """
     async with get_session() as session:
-        await CacheManager().expire_cache(
-            category=CacheCategoryEnum.ACCOUNT, data_id=account_id
-        )
+        currencies = await list_currencies()
+        for currency in currencies:
+            await CacheManager().expire_cache(
+                category=CacheCategoryEnum.ACCOUNT,
+                data_id=get_uni_id(account_id, currency.id),
+            )
         await _set_frozen_all(account_id, frozen, session)
 
 
