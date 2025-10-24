@@ -1,5 +1,8 @@
+import typing
+
 from nonebot_plugin_orm import get_session
 
+from .._cache import CacheCategoryEnum, CacheManager
 from ..pyd_models.currency_pyd import CurrencyData
 from ..services.currency import create_currency as _create_currency
 from ..services.currency import get_currency as _g_currency
@@ -22,7 +25,12 @@ async def update_currency(currency_data: CurrencyData) -> CurrencyData:
     """
     async with get_session() as session:
         currency = await _update_currency(currency_data, session)
-        return CurrencyData.model_validate(currency, from_attributes=True)
+        data = CurrencyData.model_validate(currency, from_attributes=True)
+        await CacheManager().update_cache(
+            category=CacheCategoryEnum.CURRENCY,
+            data=data,
+        )
+        return data
 
 
 async def remove_currency(currency_id: str) -> None:
@@ -31,24 +39,34 @@ async def remove_currency(currency_id: str) -> None:
     Args:
         currency_id (str): 货币唯一ID
     """
-
+    await CacheManager().expire_cache(
+        category=CacheCategoryEnum.CURRENCY, data_id=currency_id
+    )
     await _remove_currency(currency_id)
 
 
-async def list_currencies() -> list[CurrencyData]:
-    """获取所有已存在货币
+async def list_currencies(no_cache_update: bool = False) -> list[CurrencyData]:
+    """获取所有已存在货币（无法命中缓存）
 
     Returns:
         list[CurrencyData]: 包含所有已存在货币的列表
     """
     async with get_session() as session:
         currencies = await _currencies(session)
-        return [
+        result = [
             CurrencyData.model_validate(currency, from_attributes=True)
             for currency in currencies
         ]
+        if not no_cache_update:
+            for currency in result:
+                await CacheManager().update_cache(
+                    category=CacheCategoryEnum.CURRENCY,
+                    data=currency,
+                )
+        return result
 
-async def get_currency(currency_id: str) -> CurrencyData | None:
+
+async def get_currency(currency_id: str, no_cache: bool = False) -> CurrencyData | None:
     """获取一个货币信息
 
     Args:
@@ -58,6 +76,11 @@ async def get_currency(currency_id: str) -> CurrencyData | None:
         CurrencyData | None: 货币数据，如果不存在则返回None
     """
     async with get_session() as session:
+        if not no_cache:
+            if currency := await (
+                await CacheManager().get_cache(CacheCategoryEnum.CURRENCY)
+            ).get(data_id=currency_id):
+                return typing.cast(CurrencyData, currency)
         currency = await _g_currency(currency_id, session)
         if currency is None:
             return None
@@ -65,7 +88,7 @@ async def get_currency(currency_id: str) -> CurrencyData | None:
 
 
 async def get_currency_by_kwargs(**kwargs: object) -> CurrencyData | None:
-    """获取一个货币信息
+    """获取一个货币信息(此函数无法命中缓存)
 
     Args:
         **kwargs (object): 通过货币属性联合查询获取货币信息
@@ -101,6 +124,10 @@ async def create_currency(currency_data: CurrencyData) -> None:
         CurrencyData: 货币信息
     """
     async with get_session() as session:
+        await CacheManager().update_cache(
+            category=CacheCategoryEnum.CURRENCY,
+            data=currency_data,
+        )
         await _create_currency(currency_data, session)
 
 
@@ -115,4 +142,9 @@ async def get_or_create_currency(currency_data: CurrencyData) -> CurrencyData:
     """
     async with get_session() as session:
         currency, _ = await _get_or_create_currency(currency_data, session)
-        return CurrencyData.model_validate(currency, from_attributes=True)
+        data = CurrencyData.model_validate(currency, from_attributes=True)
+        await CacheManager().update_cache(
+            category=CacheCategoryEnum.CURRENCY,
+            data=data,
+        )
+        return data

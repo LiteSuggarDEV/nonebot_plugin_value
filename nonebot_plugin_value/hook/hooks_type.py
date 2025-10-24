@@ -12,6 +12,7 @@ class HooksType(str, Enum):
     @classmethod
     def post(cls) -> str:
         return cls.POST.value
+
     @classmethod
     def methods(cls) -> list[str]:
         return [hook.value for hook in cls]
