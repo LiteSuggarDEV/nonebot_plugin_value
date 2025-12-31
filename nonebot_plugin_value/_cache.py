@@ -6,7 +6,7 @@ from collections import OrderedDict
 from collections.abc import Hashable
 from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import Any, Generic, TypeVar
+from typing import Generic, TypeVar
 
 from typing_extensions import Self
 
@@ -33,7 +33,7 @@ class Cache(Generic[T]):
     max_size: int = 1000
 
     # LRU实现
-    _cache: OrderedDict[str, BaseData] = field(default_factory=lambda: OrderedDict())
+    _cache: OrderedDict[str, T] = field(default_factory=lambda: OrderedDict())
 
     def __post_init__(self):
         if self.max_size <= 0:
@@ -84,9 +84,9 @@ class Cache(Generic[T]):
         return Lock()
 
 
-class CacheManager:
+class CacheManager(Generic[T]):
     _instance = None
-    _cached: dict[CacheCategoryEnum, Cache[Any]]
+    _cached: dict[CacheCategoryEnum, Cache[T]]
 
     def __new__(cls) -> Self:
         if cls._instance is None:
@@ -96,7 +96,7 @@ class CacheManager:
 
     async def get_cache(
         self, category: CacheCategoryEnum, max_size: int = 1000
-    ) -> Cache[Any]:
+    ) -> Cache[T]:
         # 为不同类别创建具有不同大小的缓存
         if category not in self._cached:
             self._cached[category] = Cache(max_size=max_size)
