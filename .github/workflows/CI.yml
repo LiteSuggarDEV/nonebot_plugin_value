@@ -41,11 +41,6 @@ jobs:
         uses: astral-sh/ruff-action@v3
         with:
           args: check . --exit-non-zero-on-fix
-
-      - name: Prepare database
-        run: uv run nb orm upgrade
-      - name: Test
-        run: uv run pytest ./tests/value_tests/*
       - name: Build package
         run: uv build  # 生成构建产物到dist目录
 

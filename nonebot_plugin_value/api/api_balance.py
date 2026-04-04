@@ -33,6 +33,7 @@ async def set_frozen_all(account_id: str, frozen: bool) -> None:
                 data_id=get_uni_id(account_id, currency.id),
             )
         await _set_frozen_all(account_id, frozen, session)
+        await session.commit()
 
 
 async def set_frozen(account_id: str, currency_id: str, frozen: bool) -> None:
@@ -49,6 +50,7 @@ async def set_frozen(account_id: str, currency_id: str, frozen: bool) -> None:
             data_id=get_uni_id(account_id, currency_id),
         )
         await _set_frozen(account_id, frozen, currency_id, session)
+        await session.commit()
 
 
 async def list_accounts(
@@ -65,14 +67,8 @@ async def list_accounts(
     if currency_id is None:
         currency_id = DEFAULT_CURRENCY_UUID.hex
     async with get_session() as session:
-        result = [
-            UserAccountData(
-                id=account.id,
-                uni_id=account.uni_id,
-                currency_id=account.currency_id,
-                balance=account.balance,
-                last_updated=account.last_updated,
-            )
+        result: list[UserAccountData] = [
+            UserAccountData.model_validate(account, from_attributes=True)
             for account in await _list_accounts(session, currency_id)
         ]
         if not no_cache_refresh:
@@ -137,6 +133,7 @@ async def get_or_create_account(
                 category=CacheCategoryEnum.ACCOUNT,
                 data=data,
             )
+        await session.commit()
         return data
 
 
@@ -241,7 +238,8 @@ async def del_balance(
     """
     if currency_id is None:
         currency_id = DEFAULT_CURRENCY_UUID.hex
-    data = await _d_balance(user_id, currency_id, amount, source)
+    async with get_session() as session:
+        data = await _d_balance(user_id, currency_id, amount, session, source)
     if not data.success:
         raise RuntimeError(data.message)
     await CacheManager().expire_cache(

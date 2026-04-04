@@ -180,3 +180,4 @@ cython_debug/
 /config/
 /logs/
 /.ruff_cache/
+test-results.xml

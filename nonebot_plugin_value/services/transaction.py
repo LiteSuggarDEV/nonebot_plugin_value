@@ -1,6 +1,7 @@
+import contextlib
 from datetime import datetime
 
-from nonebot_plugin_orm import AsyncSession
+from nonebot_plugin_orm import AsyncSession, get_session
 
 from ..repository import TransactionRepository
 
@@ -19,7 +20,7 @@ async def get_transaction_history_by_time_range(
         start_time (datetime): 起始时间
         end_time (datetime): 结束时间
         limit (int, optional): 条数限制. Defaults to 100.
-        session (AsyncSession): 会话.
+        session (AsyncSession | None, optional): 会话. Defaults to None.
 
     Returns:
         Sequence[Transaction]: 记录
@@ -54,7 +55,7 @@ async def get_transaction_history(
 
 async def remove_transaction(
     transaction_id: str,
-    session: AsyncSession,
+    session: AsyncSession | None = None,
     fail_then_throw: bool = False,
 ) -> bool:
     """删除交易记录
@@ -67,9 +68,13 @@ async def remove_transaction(
     Returns:
         bool: 是否成功
     """
-    async with session:
+    arg_session = session
+    session = session or get_session()
+    async with session if arg_session is None else contextlib.nullcontext():
         try:
             await TransactionRepository(session).remove_transaction(transaction_id)
+            if not arg_session:
+                await session.commit()
             return True
         except Exception:
             if fail_then_throw:
