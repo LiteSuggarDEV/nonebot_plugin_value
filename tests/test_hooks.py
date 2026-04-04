@@ -140,6 +140,6 @@ async def test_hooks_manager(app: App):
     setattr(manager, "_HooksManager__hooks", {})
     manager.register(HooksType.pre(), error_hook)
 
-    # 应该记录错误但不中断执行
-    await manager.run_hooks(HooksType.pre(), pre_context)
+    with pytest.raises(ValueError, match="Test error in hook"):
+        await manager.run_hooks(HooksType.pre(), pre_context)
     assert error_hook_called, "错误的钩子也应该被调用"

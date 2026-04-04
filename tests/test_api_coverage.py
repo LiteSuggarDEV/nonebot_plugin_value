@@ -149,7 +149,22 @@ async def test_transaction_api(app: App):
     )
     assert len(empty_transactions) == 0, "未来时间范围应该没有交易记录"
 
-    # 测试删除交易记录（可选，如果需要测试的话）
+    # 测试删除交易记录
     if len(transactions_all) > 0:
         first_tx_id = transactions_all[0].id
-        await remove_transaction(first_tx_id)
+
+        # 验证删除操作的返回值
+        delete_result = await remove_transaction(first_tx_id)
+        assert delete_result is True, "删除交易记录应该返回 True"
+
+        # 验证删除效果：重新获取交易记录，确认已删除
+        transactions_after_delete = await get_transaction_history(
+            test_user_id, limit=100
+        )
+        deleted_tx_ids = [tx.id for tx in transactions_after_delete]
+        assert first_tx_id not in deleted_tx_ids, "删除后的交易 ID 不应该出现在列表中"
+
+        # 验证数量减少
+        assert len(transactions_after_delete) == len(transactions_all) - 1, (
+            "删除后交易记录数量应该减少 1"
+        )

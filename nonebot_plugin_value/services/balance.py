@@ -46,19 +46,23 @@ async def set_frozen_all(
     frozen: bool,
     session: AsyncSession | None = None,
 ):
-    """冻结这个账户ID下的所有货币储备
+    """冻结这个账户 ID 下的所有货币储备
 
     Args:
-        account_id (str): 账户ID
+        account_id (str): 账户 ID
         frozen (bool): 是否冻结
-        session (AsyncSession | None, optional): 异步Session. Defaults to None.
+        session (AsyncSession | None, optional): 异步 Session. Defaults to None.
     """
     arg_session = session
     session = session or get_session()
-    async with session if arg_session is None else contextlib.nullcontext():
-        await AccountRepository(session).set_frozen_all(account_id, frozen)
-        if not arg_session:
-            await session.commit()
+
+    async with session.begin() if not arg_session else contextlib.nullcontext():
+        try:
+            await AccountRepository(session).set_frozen_all(account_id, frozen)
+        except Exception:
+            if arg_session:
+                await session.rollback()
+            raise
 
 
 async def del_account(
@@ -142,24 +146,31 @@ async def batch_del_balance(
         return_all_on_fail (bool, optional): 批量操作失败时是否仍然返回所有结果。Defaults to True.
 
     Returns:
-        list[ActionResult]: 操作结果列表
+        list[ActionResult]: 操作结果列表（与输入顺序一致）
     """
     arg_session = session
     session = session or get_session()
-    result_list: list[ActionResult] = []
 
     async def task_inner(uid: str, amount: float):
-        nonlocal result_list
         data: ActionResult = await del_balance(
             uid, currency_id, amount, source=source, session=session
         )
-        result_list.append(data)
+        return data
 
     async with session.begin() if arg_session is None else contextlib.nullcontext():
-        await asyncio.gather(
+        results: list[ActionResult | BaseException] = await asyncio.gather(
             *[task_inner(uid, amount) for uid, amount in updates],
             return_exceptions=True,
         )
+        result_list: list[ActionResult] = []
+        for result in results:
+            if isinstance(result, BaseException):
+                result_list.append(
+                    ActionResult(success=False, message=f"操作失败：{result!s}")
+                )
+            else:
+                result_list.append(result)
+
         if not all(r.success for r in result_list):
             return [] if not return_all_on_fail else result_list
         return result_list
