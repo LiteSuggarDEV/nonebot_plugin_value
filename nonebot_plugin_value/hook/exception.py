@@ -1,7 +1,7 @@
 from typing import Any
 
 
-class BaseException(Exception):
+class BasicException(Exception):
     """
     Base exception class for this module.
     """
@@ -11,13 +11,13 @@ class BaseException(Exception):
         self.data = data
 
 
-class CancelAction(BaseException):
+class CancelAction(BasicException):
     """
     Exception raised when the user cancels an action.
     """
 
 
-class DataUpdate(Exception):
+class DataUpdate(BasicException):
     """
     Exception raised when the data updated
     """

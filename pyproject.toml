@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-value"
-version = "0.1.7"
+version = "1.0.0"
 description = "Economy API for NoneBot2"
 readme = "README.md"
 requires-python = ">=3.10, <4.0.0"
@@ -28,6 +28,7 @@ dev-dependencies = [
     "nonebot2[fastapi]>=2.4.2",
     "nonebug>=0.4.3",
     "pytest-asyncio>=1.1.0",
+    "pytest-cov>=7.0.0",
 ]
 
 [tool.uv.pip]
@@ -73,3 +74,31 @@ asyncio_default_fixture_loop_scope = "session"
 
 [tool.nonebot]
 plugins = ["nonebot_plugin_value"]
+
+# Coverage Configuration
+[tool.coverage.run]
+source = ["nonebot_plugin_value"]
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+ignore_errors = true
+show_missing = true
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.coverage.xml]
+output = "coverage.xml"

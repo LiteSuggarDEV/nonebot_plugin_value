@@ -1,10 +1,11 @@
 # 事件预处理/后处理钩子
+import asyncio
 from collections.abc import Awaitable, Callable
 
 from nonebot import logger
 
 from .context import TransactionComplete, TransactionContext
-from .exception import CancelAction, DataUpdate
+from .exception import BasicException
 from .hooks_type import HooksType
 
 
@@ -36,7 +37,7 @@ class HooksManager:
         self, hook_name: str, hook_func: Callable[..., Awaitable[None]]
     ) -> None:
         """注册一个Hook"""
-        if hook_name not in HooksType:
+        if all(hook_name != hook.value for hook in HooksType.__members__.values()):
             raise ValueError(f"Invalid hook name: {hook_name}")
         self.__hooks.setdefault(hook_name, []).append(hook_func)
 
@@ -49,10 +50,14 @@ class HooksManager:
         async def _run_single_hook(hook: Callable[..., Awaitable[None]]) -> None:
             try:
                 await hook(context)
-            except CancelAction | DataUpdate:
+            except BasicException:
                 raise
-            except Exception:
-                logger.opt(exception=True).error("钩子执行失败")
+            except Exception as e:
+                logger.opt(exception=e).error("钩子执行失败")
 
-        for hook in hooks:
-            await _run_single_hook(hook)
+        rst: list[BaseException | None] = await asyncio.gather(
+            *[_run_single_hook(hook) for hook in hooks], return_exceptions=True
+        )  # 即使没用gather的先前实现，遇到exception中断也会抛出异常，此处只是优化性能。
+        for i in rst:
+            if i is not None:
+                raise i

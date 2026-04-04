@@ -26,9 +26,10 @@ async def update_currency(currency_data: CurrencyData) -> CurrencyData:
     async with get_session() as session:
         currency = await _update_currency(currency_data, session)
         data = CurrencyData.model_validate(currency, from_attributes=True)
-        await CacheManager().update_cache(
+        await session.commit()
+        await CacheManager().expire_cache(
             category=CacheCategoryEnum.CURRENCY,
-            data=data,
+            data_id=data.id,
         )
         return data
 
@@ -42,7 +43,9 @@ async def remove_currency(currency_id: str) -> None:
     await CacheManager().expire_cache(
         category=CacheCategoryEnum.CURRENCY, data_id=currency_id
     )
-    await _remove_currency(currency_id)
+    async with get_session() as session:
+        await _remove_currency(currency_id)
+        await session.commit()
 
 
 async def list_currencies(no_cache_update: bool = False) -> list[CurrencyData]:
@@ -57,6 +60,7 @@ async def list_currencies(no_cache_update: bool = False) -> list[CurrencyData]:
             CurrencyData.model_validate(currency, from_attributes=True)
             for currency in currencies
         ]
+        await session.commit()
         if not no_cache_update:
             for currency in result:
                 await CacheManager().update_cache(
@@ -84,7 +88,9 @@ async def get_currency(currency_id: str, no_cache: bool = False) -> CurrencyData
         currency = await _g_currency(currency_id, session)
         if currency is None:
             return None
-        return CurrencyData.model_validate(currency, from_attributes=True)
+        data = CurrencyData.model_validate(currency, from_attributes=True)
+        await session.commit()
+        return data
 
 
 async def get_currency_by_kwargs(**kwargs: object) -> CurrencyData | None:
@@ -100,7 +106,9 @@ async def get_currency_by_kwargs(**kwargs: object) -> CurrencyData | None:
         currency = await __currency_by_kwargs(**kwargs, session=session)
         if currency is None:
             return None
-        return CurrencyData.model_validate(currency, from_attributes=True)
+        data = CurrencyData.model_validate(currency, from_attributes=True)
+        await session.commit()
+        return data
 
 
 async def get_default_currency() -> CurrencyData:
@@ -111,7 +119,9 @@ async def get_default_currency() -> CurrencyData:
     """
     async with get_session() as session:
         currency = await _default_currency(session)
-        return CurrencyData.model_validate(currency, from_attributes=True)
+        data = CurrencyData.model_validate(currency, from_attributes=True)
+        await session.commit()
+        return data
 
 
 async def create_currency(currency_data: CurrencyData) -> None:
@@ -119,9 +129,6 @@ async def create_currency(currency_data: CurrencyData) -> None:
 
     Args:
         currency_data (CurrencyData): 货币信息
-
-    Returns:
-        CurrencyData: 货币信息
     """
     async with get_session() as session:
         await CacheManager().update_cache(
@@ -129,6 +136,7 @@ async def create_currency(currency_data: CurrencyData) -> None:
             data=currency_data,
         )
         await _create_currency(currency_data, session)
+        await session.commit()
 
 
 async def get_or_create_currency(currency_data: CurrencyData) -> CurrencyData:
@@ -147,4 +155,5 @@ async def get_or_create_currency(currency_data: CurrencyData) -> CurrencyData:
             category=CacheCategoryEnum.CURRENCY,
             data=data,
         )
+        await session.commit()
         return data

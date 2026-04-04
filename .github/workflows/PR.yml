@@ -45,8 +45,8 @@ jobs:
       - name: Prepare database
         run: uv run nb orm upgrade
       
-      - name: Test
-        run: uv run pytest ./tests/value_tests/*
-
+      - name: Run Unit Tests
+        run: uv run pytest tests/* --cov=nonebot_plugin_value --cov-report=term-missing --cov-report=xml -v
+      
       - name: Build package
         run: uv build  # 生成构建产物到dist目录

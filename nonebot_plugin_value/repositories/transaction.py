@@ -28,27 +28,27 @@ class TransactionRepository:
         balance_after: float,
         timestamp: datetime | None = None,
     ) -> Transaction:
-        async with self.session as session:
-            """创建交易记录"""
-            if timestamp is None:
-                timestamp = datetime.now(timezone.utc)
-            uuid = uuid1().hex
-            transaction_data = Transaction(
-                id=uuid,
-                account_id=account_id,
-                currency_id=currency_id,
-                amount=amount,
-                action=action,
-                source=source,
-                balance_before=balance_before,
-                balance_after=balance_after,
-                timestamp=timestamp,
-            )
-            session.add(transaction_data)
-            await session.commit()
-            await session.refresh(transaction_data)
-            session.add(transaction_data)
-            return transaction_data
+        """创建交易记录"""
+        session = self.session
+        if timestamp is None:
+            timestamp = datetime.now(timezone.utc)
+        uuid = uuid1().hex
+        transaction_data = Transaction(
+            id=uuid,
+            account_id=account_id,
+            currency_id=currency_id,
+            amount=amount,
+            action=action,
+            source=source,
+            balance_before=balance_before,
+            balance_after=balance_after,
+            timestamp=timestamp,
+        )
+        session.add(transaction_data)
+        await session.commit()
+        await session.refresh(transaction_data)
+        session.add(transaction_data)
+        return transaction_data
 
     async def get_transaction_history(
         self, account_id: str, limit: int = 100
@@ -72,38 +72,32 @@ class TransactionRepository:
         limit: int = 100,
     ) -> Sequence[Transaction]:
         """获取账户交易历史"""
-        async with self.session as session:
-            result = await session.execute(
-                select(Transaction)
-                .where(
-                    Transaction.account_id == account_id,
-                    Transaction.timestamp >= start_time,
-                    Transaction.timestamp <= end_time,
-                )
-                .order_by(Transaction.timestamp.desc())
-                .limit(limit)
+        session = self.session
+        result = await session.execute(
+            select(Transaction)
+            .where(
+                Transaction.account_id == account_id,
+                Transaction.timestamp >= start_time,
+                Transaction.timestamp <= end_time,
             )
-            data = result.scalars().all()
-            session.add_all(data)
+            .order_by(Transaction.timestamp.desc())
+            .limit(limit)
+        )
+        data = result.scalars().all()
+        session.add_all(data)
         return data
 
     async def remove_transaction(self, transaction_id: str) -> None:
         """删除交易记录"""
-        async with self.session as session:
-            try:
-                transaction = (
-                    await session.execute(
-                        select(Transaction)
-                        .where(Transaction.id == transaction_id)
-                        .with_for_update()
-                    )
-                ).scalar()
-                if not transaction:
-                    raise TransactionNotFound("Transaction not found")
-                stmt = delete(Transaction).where(Transaction.id == transaction_id)
-                await session.execute(stmt)
-            except Exception:
-                await session.rollback()
-                raise
-            else:
-                await session.commit()
+        session = self.session
+        transaction = (
+            await session.execute(
+                select(Transaction)
+                .where(Transaction.id == transaction_id)
+                .with_for_update()
+            )
+        ).scalar()
+        if not transaction:
+            raise TransactionNotFound("Transaction not found")
+        stmt = delete(Transaction).where(Transaction.id == transaction_id)
+        await session.execute(stmt)

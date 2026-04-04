@@ -24,6 +24,8 @@
   </p>
 </div>
 
+> *为 NoneBot2 设计的娱乐系统基础设施。*
+
 ## 核心特性
 
 `nonebot_plugin_value` 是一个基于 NoneBot2 的通用经济系统插件，提供以下核心功能:

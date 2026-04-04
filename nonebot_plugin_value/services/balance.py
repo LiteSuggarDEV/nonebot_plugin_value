@@ -1,3 +1,5 @@
+import asyncio
+import contextlib
 from datetime import datetime, timezone
 
 from nonebot import logger
@@ -28,13 +30,15 @@ async def set_frozen(
         currency_id (str | None, optional): 货币ID. Defaults to None.
         session (AsyncSession | None, optional): 异步Session. Defaults to None.
     """
-    if session is None:
-        session = get_session()
-    async with session:
+    arg_session = session
+    session = session or get_session()
+    async with session if arg_session is None else contextlib.nullcontext():
         repo = AccountRepository(session)
         await repo.set_account_frozen(
             account_id, currency_id or DEFAULT_CURRENCY_UUID.hex, frozen
         )
+        if not arg_session:
+            await session.commit()
 
 
 async def set_frozen_all(
@@ -42,17 +46,23 @@ async def set_frozen_all(
     frozen: bool,
     session: AsyncSession | None = None,
 ):
-    """冻结这个账户ID下的所有货币储备
+    """冻结这个账户 ID 下的所有货币储备
 
     Args:
-        account_id (str): 账户ID
+        account_id (str): 账户 ID
         frozen (bool): 是否冻结
-        session (AsyncSession | None, optional): 异步Session. Defaults to None.
+        session (AsyncSession | None, optional): 异步 Session. Defaults to None.
     """
-    if session is None:
-        session = get_session()
-    async with session:
-        await AccountRepository(session).set_frozen_all(account_id, frozen)
+    arg_session = session
+    session = session or get_session()
+
+    async with session.begin() if not arg_session else contextlib.nullcontext():
+        try:
+            await AccountRepository(session).set_frozen_all(account_id, frozen)
+        except Exception:
+            if arg_session:
+                await session.rollback()
+            raise
 
 
 async def del_account(
@@ -64,14 +74,18 @@ async def del_account(
     """删除账户
 
     Args:
-        session (AsyncSession | None, optional): 异步会话. Defaults to None.
-        user_id (str): 用户ID
+        account_id (str): 账户 ID
+        session (AsyncSession | None, optional): 异步会话。Defaults to None.
+        fail_then_throw (bool, optional): 失败时是否抛出异常。Defaults to False.
+        currency_id (str | None, optional): 货币 ID. Defaults to None.
     """
-    if session is None:
-        session = get_session()
-    async with session:
+    arg_session = session
+    session = session or get_session()
+    async with session if arg_session is None else contextlib.nullcontext():
         try:
             await AccountRepository(session).remove_account(account_id, currency_id)
+            if not arg_session:
+                await session.commit()
             return True
         except Exception:
             if fail_then_throw:
@@ -86,15 +100,15 @@ async def list_accounts(
     """列出所有账户
 
     Args:
-        session (AsyncSession): 异步会话. Defaults to None.
+        session (AsyncSession): 异步会话
+        currency_id (str | None, optional): 货币 ID. Defaults to None.
 
     Returns:
         Sequence[UserAccount]: 所有账户（指定或所有货币的）
     """
     if currency_id is None:
         currency_id = DEFAULT_CURRENCY_UUID.hex
-    async with session:
-        return await AccountRepository(session).list_accounts()
+    return await AccountRepository(session).list_accounts()
 
 
 async def get_or_create_account(
@@ -105,17 +119,14 @@ async def get_or_create_account(
     """获取或创建一个货币的账户
 
     Args:
-        user_id (str): 用户ID
-        currency_id (str): 货币ID
-        session (AsyncSession): 异步会话. Defaults to None.
+        user_id (str): 用户 ID
+        currency_id (str): 货币 ID
+        session (AsyncSession): 异步会话
 
     Returns:
         UserAccount: 用户数据模型
     """
-    async with session:
-        return await AccountRepository(session).get_or_create_account(
-            user_id, currency_id
-        )
+    return await AccountRepository(session).get_or_create_account(user_id, currency_id)
 
 
 async def batch_del_balance(
@@ -123,29 +134,42 @@ async def batch_del_balance(
     currency_id: str,
     source: str = "batch_update",
     session: AsyncSession | None = None,
-    return_all_on_fail: bool = False,
+    return_all_on_fail: bool = True,
 ) -> list[ActionResult]:
     """批量减少账户余额
 
     Args:
-        updates (list[tuple[str, float]]): 元组列表，包含用户id和金额
-        currency_id (str): 货币ID
-        source (str, optional): 源. Defaults to "batch_update".
-        session (AsyncSession | None, optional): 异步Session. Defaults to None.
-        return_all_on_fail (bool, optional): 批量操作失败时是否仍然返回所有结果. Defaults to False.
+        updates (list[tuple[str, float]]): 元组列表，包含用户 id 和金额
+        currency_id (str): 货币 ID
+        source (str, optional): 源。Defaults to "batch_update".
+        session (AsyncSession | None, optional): 异步 Session. Defaults to None.
+        return_all_on_fail (bool, optional): 批量操作失败时是否仍然返回所有结果。Defaults to True.
 
     Returns:
-        list[ActionResult]: 操作结果列表
+        list[ActionResult]: 操作结果列表（与输入顺序一致）
     """
-    if session is None:
-        session = get_session()
-    result_list: list[ActionResult] = []
-    async with session:
-        for uid, amount in updates:
-            data: ActionResult = await del_balance(
-                uid, currency_id, amount, source, session
-            )
-            result_list.append(data)
+    arg_session = session
+    session = session or get_session()
+
+    async def task_inner(uid: str, amount: float):
+        data: ActionResult = await del_balance(
+            uid, currency_id, amount, source=source, session=session
+        )
+        return data
+
+    async with session.begin() if arg_session is None else contextlib.nullcontext():
+        results: list[ActionResult | BaseException] = await asyncio.gather(
+            *[task_inner(uid, amount) for uid, amount in updates],
+            return_exceptions=True,
+        )
+        result_list: list[ActionResult] = []
+        for result in results:
+            if isinstance(result, BaseException):
+                result_list.append(
+                    ActionResult(success=False, message=f"操作失败：{result!s}")
+                )
+            else:
+                result_list.append(result)
 
         if not all(r.success for r in result_list):
             return [] if not return_all_on_fail else result_list
@@ -156,79 +180,77 @@ async def del_balance(
     user_id: str,
     currency_id: str,
     amount: float,
+    session: AsyncSession,
     source: str = "",
-    session: AsyncSession | None = None,
 ) -> ActionResult:
     """异步减少余额
 
     Args:
-        user_id (str): 用户ID
-        currency_id (str): 货币ID
+        user_id (str): 用户 ID
+        currency_id (str): 货币 ID
         amount (float): 金额
-        source (str, optional): 来源说明. Defaults to "".
-        session (AsyncSession | None, optional): 数据库异步会话. Defaults to None.
+        source (str, optional): 来源说明。Defaults to "".
+        session (AsyncSession): 数据库异步会话
 
     Returns:
         ActionResult: 包含是否成功的说明
     """
     if amount <= 0:
         return ActionResult(success=False, message="金额必须大于0")
-    if session is None:
-        session = get_session()
-    async with session:
-        account_repo = AccountRepository(session)
-        tx_repo = TransactionRepository(session)
 
-        account = await account_repo.get_or_create_account(user_id, currency_id)
-        session.add(account)
-        balance_before = account.balance
-        account_id = account.id
-        try:
-            await HooksManager().run_hooks(
-                HooksType.PRE.value,
-                TransactionContext(
-                    user_id=user_id,
-                    currency=currency_id,
-                    amount=amount,
-                    action_type=Method.WITHDRAW.value,
-                ),
-            )
-        except DataUpdate as du:
-            amount = du.amount
-        except CancelAction as e:
-            logger.warning(f"取消了交易：{e.message}")
-            return TransferResult(
-                success=True,
-                message=f"取消了交易：{e.message}",
-            )
-        balance_after = balance_before - amount
-        await account_repo.update_balance(
-            account_id,  # 使用提前获取的account_id
-            balance_after,
-            currency_id,
+    account_repo = AccountRepository(session)
+    tx_repo = TransactionRepository(session)
+
+    account = await account_repo.get_or_create_account(user_id, currency_id)
+    session.add(account)
+    balance_before = account.balance
+    account_id = account.id
+    try:
+        await HooksManager().run_hooks(
+            HooksType.PRE.value,
+            TransactionContext(
+                user_id=user_id,
+                currency=currency_id,
+                amount=amount,
+                action_type=Method.WITHDRAW.value,
+            ),
         )
-        await tx_repo.create_transaction(
-            account_id,  # 使用提前获取的account_id
-            currency_id,
-            amount,
-            Method.TRANSFER_OUT.value,
-            source,
-            balance_before,
-            balance_after,
+    except DataUpdate as du:
+        amount = du.amount
+    except CancelAction as e:
+        logger.warning(f"取消了交易：{e.message}")
+        return TransferResult(
+            success=True,
+            message=f"取消了交易：{e.message}",
         )
-        try:
-            await HooksManager().run_hooks(
-                HooksType.POST.value,
-                TransactionComplete(
-                    message="交易完成",
-                    source_balance=balance_before,
-                    new_balance=balance_after,
-                    timestamp=datetime.now().timestamp(),
-                    user_id=user_id,
-                ),
-            )
-        finally:
-            return ActionResult(success=True, message="操作成功")
+    balance_after = balance_before - amount
+    await account_repo.update_balance(
+        account_id,  # 使用提前获取的account_id
+        balance_after,
+        currency_id,
+    )
+    await tx_repo.create_transaction(
+        account_id,  # 使用提前获取的account_id
+        currency_id,
+        amount,
+        Method.TRANSFER_OUT.value,
+        source,
+        balance_before,
+        balance_after,
+    )
+    try:
+        await HooksManager().run_hooks(
+            HooksType.POST.value,
+            TransactionComplete(
+                message="交易完成",
+                source_balance=balance_before,
+                new_balance=balance_after,
+                timestamp=datetime.now().timestamp(),
+                user_id=user_id,
+            ),
+        )
+    finally:
+        return ActionResult(success=True, message="操作成功")
 
 
 async def batch_add_balance(
@@ -241,18 +263,19 @@ async def batch_add_balance(
     """批量添加余额
 
     Args:
-        updates (list[tuple[str, float]]): 元组列表 [(用户ID, 金额变化)]
-        source (str, optional): 来源. Defaults to "batch_update".
-        session (AsyncSession | None, optional): 会话. Defaults to None.
-        return_all_on_fail (bool, optional): 返回所有结果即使失败时. Defaults to False.
+        updates (list[tuple[str, float]]): 元组列表 [(用户 ID, 金额变化)]
+        currency_id (str): 货币 ID
+        source (str, optional): 来源。Defaults to "batch_update".
+        session (AsyncSession | None, optional): 会话。Defaults to None.
+        return_all_on_fail (bool, optional): 返回所有结果即使失败时。Defaults to False.
 
     Returns:
         list[ActionResult]: 返回的数据（与列表顺序一致，如果任意一个失败则返回空列表）
     """
-    if session is None:
-        session = get_session()
     result_list: list[ActionResult] = []
-    async with session:
+    arg_session = session
+    session = session or get_session()
+    async with session if arg_session is None else contextlib.nullcontext():
         for uid, amount in updates:
             data: ActionResult = await add_balance(
                 uid, currency_id, amount, source, session
@@ -273,17 +296,17 @@ async def add_balance(
     """异步增加余额
 
     Args:
-        user_id (str): 用户ID
-        currency_id (str): 货币ID
+        user_id (str): 用户 ID
+        currency_id (str): 货币 ID
         amount (float): 金额
-        source (str, optional): 来源说明. Defaults to "".
-        session (AsyncSession | None, optional): 数据库异步会话. Defaults to None.
+        source (str, optional): 来源说明。Defaults to "".
+        arg_session (AsyncSession | None, optional): 数据库异步会话。Defaults to None.
 
     Returns:
-        ActionResult: 是否成功("success")，消息说明("message")
+        ActionResult: 是否成功 ("success")，消息说明 ("message")
     """
-    session = get_session() if arg_session is None else arg_session
-    async with session:
+    session = arg_session or get_session()
+    async with session if arg_session is None else contextlib.nullcontext():
         if amount <= 0:
             return ActionResult(
                 success=False,
@@ -327,6 +350,8 @@ async def add_balance(
             balance_after,
             currency_id,
         )
+        if not arg_session:
+            await session.commit()
         try:
             await HooksManager().run_hooks(
                 HooksType.POST.value,
@@ -356,24 +381,24 @@ async def transfer_funds(
     """异步转账
 
     Args:
-        fromuser_id (str): 源用户ID
-        touser_id (str): 目标用户ID
-        currency_id (str): 货币ID
+        fromuser_id (str): 源用户 ID
+        touser_id (str): 目标用户 ID
+        currency_id (str): 货币 ID
         amount (float): 金额
-        source (str, optional): 源说明. Defaults to "transfer".
-        session (AsyncSession | None, optional): 数据库异步Session. Defaults to None.
+        source (str, optional): 源说明。Defaults to "transfer".
+        arg_session (AsyncSession | None, optional): 数据库异步 Session. Defaults to None.
 
     Returns:
-        TransferResult: 如果成功则包含"from_balance"（源账户现在的balance），"to_balance"（目标账户现在的balance）字段
+        TransferResult: 如果成功则包含"from_balance"（源账户现在的 balance），"to_balance"（目标账户现在的 balance）字段
     """
 
-    session = get_session() if arg_session is None else arg_session
     if amount <= 0:
         return TransferResult(
             message="金额必须大于0",
             success=False,
         )
-    async with session:
+    session = arg_session or get_session()
+    async with session if arg_session is None else contextlib.nullcontext():
         account_repo = AccountRepository(session)
         tx_repo = TransactionRepository(session)
 

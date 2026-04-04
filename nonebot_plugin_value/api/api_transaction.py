@@ -40,6 +40,7 @@ async def get_transaction_history_by_time_range(
             TransactionData.model_validate(transaction, from_attributes=True)
             for transaction in data
         ]
+        await session.commit()
         return result_list
 
 
@@ -57,7 +58,7 @@ async def get_transaction_history(
         list[TransactionData]: 包含交易数据的列表
     """
     async with get_session() as session:
-        return [
+        d = [
             TransactionData.model_validate(transaction, from_attributes=True)
             for transaction in await _transaction_history(
                 account_id,
@@ -65,6 +66,8 @@ async def get_transaction_history(
                 limit,
             )
         ]
+        await session.commit()
+        return d
 
 
 async def remove_transaction(transaction_id: str) -> bool:
@@ -77,7 +80,9 @@ async def remove_transaction(transaction_id: str) -> bool:
         bool: 是否成功删除
     """
     async with get_session() as session:
-        return await _remove_transaction(
+        d = await _remove_transaction(
             transaction_id,
             session,
         )
+        await session.commit()
+        return d
