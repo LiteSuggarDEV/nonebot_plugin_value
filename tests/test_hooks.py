@@ -135,11 +135,10 @@ async def test_hooks_manager(app: App):
     async def error_hook(context: TransactionContext):
         nonlocal error_hook_called
         error_hook_called = True
-        raise ValueError("Test error in hook")
+        raise ValueError("Test error in hook") # 这个会被Inner捕捉
 
     setattr(manager, "_HooksManager__hooks", {})
     manager.register(HooksType.pre(), error_hook)
 
-    with pytest.raises(ValueError, match="Test error in hook"):
-        await manager.run_hooks(HooksType.pre(), pre_context)
+    await manager.run_hooks(HooksType.pre(), pre_context)
     assert error_hook_called, "错误的钩子也应该被调用"
