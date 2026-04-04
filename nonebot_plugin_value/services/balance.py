@@ -70,8 +70,10 @@ async def del_account(
     """删除账户
 
     Args:
-        session (AsyncSession | None, optional): 异步会话. Defaults to None.
-        user_id (str): 用户ID
+        account_id (str): 账户 ID
+        session (AsyncSession | None, optional): 异步会话。Defaults to None.
+        fail_then_throw (bool, optional): 失败时是否抛出异常。Defaults to False.
+        currency_id (str | None, optional): 货币 ID. Defaults to None.
     """
     arg_session = session
     session = session or get_session()
@@ -94,7 +96,8 @@ async def list_accounts(
     """列出所有账户
 
     Args:
-        session (AsyncSession): 异步会话. Defaults to None.
+        session (AsyncSession): 异步会话
+        currency_id (str | None, optional): 货币 ID. Defaults to None.
 
     Returns:
         Sequence[UserAccount]: 所有账户（指定或所有货币的）
@@ -112,9 +115,9 @@ async def get_or_create_account(
     """获取或创建一个货币的账户
 
     Args:
-        user_id (str): 用户ID
-        currency_id (str): 货币ID
-        session (AsyncSession): 异步会话. Defaults to None.
+        user_id (str): 用户 ID
+        currency_id (str): 货币 ID
+        session (AsyncSession): 异步会话
 
     Returns:
         UserAccount: 用户数据模型
@@ -132,11 +135,11 @@ async def batch_del_balance(
     """批量减少账户余额
 
     Args:
-        updates (list[tuple[str, float]]): 元组列表，包含用户id和金额
-        currency_id (str): 货币ID
-        source (str, optional): 源. Defaults to "batch_update".
-        session (AsyncSession | None, optional): 异步Session. Defaults to None.
-        return_all_on_fail (bool, optional): 批量操作失败时是否仍然返回所有结果. Defaults to False.
+        updates (list[tuple[str, float]]): 元组列表，包含用户 id 和金额
+        currency_id (str): 货币 ID
+        source (str, optional): 源。Defaults to "batch_update".
+        session (AsyncSession | None, optional): 异步 Session. Defaults to None.
+        return_all_on_fail (bool, optional): 批量操作失败时是否仍然返回所有结果。Defaults to True.
 
     Returns:
         list[ActionResult]: 操作结果列表
@@ -172,11 +175,11 @@ async def del_balance(
     """异步减少余额
 
     Args:
-        user_id (str): 用户ID
-        currency_id (str): 货币ID
+        user_id (str): 用户 ID
+        currency_id (str): 货币 ID
         amount (float): 金额
-        source (str, optional): 来源说明. Defaults to "".
-        session (AsyncSession | None, optional): 数据库异步会话. Defaults to None.
+        source (str, optional): 来源说明。Defaults to "".
+        session (AsyncSession): 数据库异步会话
 
     Returns:
         ActionResult: 包含是否成功的说明
@@ -249,10 +252,11 @@ async def batch_add_balance(
     """批量添加余额
 
     Args:
-        updates (list[tuple[str, float]]): 元组列表 [(用户ID, 金额变化)]
-        source (str, optional): 来源. Defaults to "batch_update".
-        session (AsyncSession | None, optional): 会话. Defaults to None.
-        return_all_on_fail (bool, optional): 返回所有结果即使失败时. Defaults to False.
+        updates (list[tuple[str, float]]): 元组列表 [(用户 ID, 金额变化)]
+        currency_id (str): 货币 ID
+        source (str, optional): 来源。Defaults to "batch_update".
+        session (AsyncSession | None, optional): 会话。Defaults to None.
+        return_all_on_fail (bool, optional): 返回所有结果即使失败时。Defaults to False.
 
     Returns:
         list[ActionResult]: 返回的数据（与列表顺序一致，如果任意一个失败则返回空列表）
@@ -281,14 +285,14 @@ async def add_balance(
     """异步增加余额
 
     Args:
-        user_id (str): 用户ID
-        currency_id (str): 货币ID
+        user_id (str): 用户 ID
+        currency_id (str): 货币 ID
         amount (float): 金额
-        source (str, optional): 来源说明. Defaults to "".
-        session (AsyncSession | None, optional): 数据库异步会话. Defaults to None.
+        source (str, optional): 来源说明。Defaults to "".
+        arg_session (AsyncSession | None, optional): 数据库异步会话。Defaults to None.
 
     Returns:
-        ActionResult: 是否成功("success")，消息说明("message")
+        ActionResult: 是否成功 ("success")，消息说明 ("message")
     """
     session = arg_session or get_session()
     async with session if arg_session is None else contextlib.nullcontext():
@@ -366,15 +370,15 @@ async def transfer_funds(
     """异步转账
 
     Args:
-        fromuser_id (str): 源用户ID
-        touser_id (str): 目标用户ID
-        currency_id (str): 货币ID
+        fromuser_id (str): 源用户 ID
+        touser_id (str): 目标用户 ID
+        currency_id (str): 货币 ID
         amount (float): 金额
-        source (str, optional): 源说明. Defaults to "transfer".
-        session (AsyncSession | None, optional): 数据库异步Session. Defaults to None.
+        source (str, optional): 源说明。Defaults to "transfer".
+        arg_session (AsyncSession | None, optional): 数据库异步 Session. Defaults to None.
 
     Returns:
-        TransferResult: 如果成功则包含"from_balance"（源账户现在的balance），"to_balance"（目标账户现在的balance）字段
+        TransferResult: 如果成功则包含"from_balance"（源账户现在的 balance），"to_balance"（目标账户现在的 balance）字段
     """
 
     if amount <= 0:

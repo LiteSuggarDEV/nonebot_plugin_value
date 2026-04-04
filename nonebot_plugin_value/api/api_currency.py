@@ -129,9 +129,6 @@ async def create_currency(currency_data: CurrencyData) -> None:
 
     Args:
         currency_data (CurrencyData): 货币信息
-
-    Returns:
-        CurrencyData: 货币信息
     """
     async with get_session() as session:
         await CacheManager().update_cache(

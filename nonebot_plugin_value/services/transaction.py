@@ -16,11 +16,11 @@ async def get_transaction_history_by_time_range(
     """通过时间范围获取账户交易历史
 
     Args:
-        account_id (str): 用户ID
+        account_id (str): 账户 ID
         start_time (datetime): 起始时间
         end_time (datetime): 结束时间
-        limit (int, optional): 条数限制. Defaults to 100.
-        session (AsyncSession | None, optional): 会话. Defaults to None.
+        session (AsyncSession): 会话
+        limit (int, optional): 条数限制。Defaults to 100.
 
     Returns:
         Sequence[Transaction]: 记录
@@ -41,9 +41,9 @@ async def get_transaction_history(
     """获取一个用户的交易记录
 
     Args:
-        session (AsyncSession | None, optional): 异步数据库会话
-        account_id (str): 用户UUID(应自行处理)
-        limit (int, optional): 数据条数. Defaults to 100.
+        account_id (str): 账户 UUID(应自行处理)
+        session (AsyncSession): 异步数据库会话
+        limit (int, optional): 数据条数。Defaults to 100.
 
     Returns:
         Sequence[Transaction]: 记录列表

@@ -40,8 +40,8 @@ async def set_frozen(account_id: str, currency_id: str, frozen: bool) -> None:
     """设置账户特定货币冻结状态
 
     Args:
-        account_id (str): 用户ID
-        currency_id (str): 货币ID
+        account_id (str): 账户 ID
+        currency_id (str): 货币 ID
         frozen (bool): 是否冻结
     """
     async with get_session() as session:
@@ -141,16 +141,13 @@ async def batch_del_balance(
     updates: list[tuple[str, float]],
     currency_id: str | None = None,
     source: str = "batch_update",
-) -> list[UserAccountData] | None:
+) -> None:
     """批量减少账户余额
 
     Args:
-        updates (list[tuple[str, float]]): 元组列表，包含用户id和金额
-        currency_id (str | None, optional): 货币ID. Defaults to None.
-        source (str, optional): 源说明. Defaults to "batch_update".
-
-    Returns:
-        None: None
+        updates (list[tuple[str, float]]): 元组列表，包含用户 id 和金额
+        currency_id (str | None, optional): 货币 ID. Defaults to None.
+        source (str, optional): 源说明。Defaults to "batch_update".
     """
     if currency_id is None:
         currency_id = DEFAULT_CURRENCY_UUID.hex
@@ -165,16 +162,13 @@ async def batch_add_balance(
     updates: list[tuple[str, float]],
     currency_id: str | None = None,
     source: str = "batch_update",
-) -> list[UserAccountData] | None:
+) -> None:
     """批量添加账户余额
 
     Args:
-        updates (list[tuple[str, float]]): 元组列表，包含用户id和金额
-        currency_id (str | None, optional): 货币ID. Defaults to None.
-        source (str, optional): 源说明. Defaults to "batch_update".
-
-    Returns:
-        None: None
+        updates (list[tuple[str, float]]): 元组列表，包含用户 id 和金额
+        currency_id (str | None, optional): 货币 ID. Defaults to None.
+        source (str, optional): 源说明。Defaults to "batch_update".
     """
     if currency_id is None:
         currency_id = DEFAULT_CURRENCY_UUID.hex
@@ -194,18 +188,14 @@ async def add_balance(
     """添加用户余额
 
     Args:
-        user_id (str): 用户ID
+        user_id (str): 用户 ID
         amount (float): 金额
-        source (str, optional): 源描述. Defaults to "_transfer".
-        currency_id (str | None, optional): 货币ID(不填使用默认). Defaults to None.
+        source (str, optional): 源描述。Defaults to "_transfer".
+        currency_id (str | None, optional): 货币 ID(不填使用默认). Defaults to None.
 
     Raises:
         RuntimeError: 如果添加失败则抛出异常
-
-    Returns:
-        None: None
     """
-
     if currency_id is None:
         currency_id = DEFAULT_CURRENCY_UUID.hex
     data = await _a_balance(user_id, currency_id, amount, source)
@@ -225,16 +215,13 @@ async def del_balance(
     """减少一个账户的余额
 
     Args:
-        user_id (str): 用户ID
+        user_id (str): 用户 ID
         amount (float): 金额
-        source (str, optional): 源说明. Defaults to "_transfer".
-        currency_id (str | None, optional): 货币ID(不填则使用默认货币). Defaults to Noen.
+        source (str, optional): 源说明。Defaults to "_transfer".
+        currency_id (str | None, optional): 货币 ID(不填则使用默认货币). Defaults to None.
 
     Raises:
         RuntimeError: 如果失败则抛出
-
-    Returns:
-        UserAccountData: 用户数据
     """
     if currency_id is None:
         currency_id = DEFAULT_CURRENCY_UUID.hex
@@ -265,9 +252,6 @@ async def transfer_funds(
 
     Raises:
         RuntimeError: 失败则抛出
-
-    Returns:
-        None: None
     """
     if currency_id is None:
         currency_id = DEFAULT_CURRENCY_UUID.hex
